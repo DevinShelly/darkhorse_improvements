@@ -137,6 +137,7 @@ select_correct_category = function()
     wait_until_dropdowns_open(select_correct_category);
     return;
   }
+  
   segment = params().get("segment");
   //Select the proper category, then select the correct segment
   for(dropdown_option of dropdown_options())
@@ -154,6 +155,12 @@ select_correct_category = function()
     else if(segment.includes("Period") && dropdown_option.textContent.includes("Periods"))
     {
       dropdown_option.click();
+      return;
+    }
+    else if(segment.includes("Set") && dropdown_option.textContent.includes("Set"))
+    {
+      dropdown_option.click();
+      params().delete("segment");
       return;
     }
   }
