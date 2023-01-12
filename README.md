@@ -1,5 +1,4 @@
-# darkhorse_improvements
-Making Darkhorse more amenable to EV betting
+# DarkHorseOdds Improvements
 
 This does two main things at the moment. First, it automatically clicks on the update button when it becomes active so that your odds are always as up to date as possible. Second, if you double click on a bet in one of the bet finder screens, it automatically opens the Browse Odds page and opens the page for that particular market so that you can quickly see which side of the market is off.
 
