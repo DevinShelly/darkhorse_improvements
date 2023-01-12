@@ -145,22 +145,26 @@ select_correct_category = function()
     if(segment.includes("Half") && dropdown_option.textContent.includes("Halves"))
     {
       dropdown_option.click();
+      wait_until_dropdowns_close(select_correct_segment);
       return;
     }
     else if(segment.includes("Quarter") && dropdown_option.textContent.includes("Quarters"))
     {
       dropdown_option.click();
+      wait_until_dropdowns_close(select_correct_segment);
       return;
     }
     else if(segment.includes("Period") && dropdown_option.textContent.includes("Periods"))
     {
       dropdown_option.click();
+      wait_until_dropdowns_close(select_correct_segment);
       return;
     }
     else if(segment.includes("Set") && dropdown_option.textContent.includes("Set"))
     {
-      dropdown_option.click();
       params().delete("segment");
+      dropdown_option.click();
+      wait_until_dropdowns_close(select_correct_market);
       return;
     }
   }
@@ -188,6 +192,7 @@ select_correct_segment = function()
     if(params().get("segment").includes(dropdown_option.textContent.trim()))
     {
       dropdown_option.click();
+      wait_until_dropdowns_close(select_correct_market);
       return;
     }
   }
@@ -300,10 +305,13 @@ market_dblclicked = function(event)
   team2 = event_col_texts[2].textContent.trim();
   
   market_col = event.currentTarget;
-  market = market_col.querySelector("app-market-chip").textContent.trim();
+  market = market_col.querySelector("app-market-chip").textContent.trim()
   segment = market_col.querySelector("app-segment-chip") ? market_col.querySelector("app-segment-chip").textContent.trim() : null;
-  market2 = markets.length > 1 ? markets[1].textContent.trim() : null;
   value = market_col.getElementsByClassName("market")[0].textContent.trim();
+  
+  //Quarter/Half markets combine alts and main lines into one page, so get rid of Alt Total
+  market = segment && market == "Alt Total" ? "Total Score" : market;
+  market = segment && market == "Alt Spread" ? "Spread" : market;
   
   query_string = `?league=${league}&team1=${team1}&team2=${team2}&market=${market}&value=${value}`;
   query_string = segment ? query_string + `&segment=${segment}` : query_string;
