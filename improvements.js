@@ -320,7 +320,7 @@
     }
   }
   
-  add_go_to_markets_events = function()
+  add_bet_finder_events = function()
   {
     markets = document.querySelectorAll(".primary-market-col, .hedge-market-col");
     for(market of markets)
@@ -330,6 +330,16 @@
         market.ondblclick = market_dblclicked;
       }
     }
+    
+    events = document.querySelectorAll("td.event-col");
+    for(event of events)
+    {
+      if(!event.ondblclick)
+      {
+        event.ondblclick = event_dblclicked;
+      }
+    }
+    
   }
   
   /* Fix any discrepancies between bet finder and browse odds manually */
@@ -363,6 +373,75 @@
     query_string = segment ? query_string + `&segment=${segment}` : query_string;
     browse_odds_url = "https://darkhorseodds.com/browse-odds"+query_string;
     window.open(browse_odds_url);
+  }
+  
+  const dimmed_class = "dimmed-class";
+  const dimmed_storage_key = "dimmed-keys";
+  load_dimmed_keys = function()
+  {
+    return JSON.parse(localStorage.getItem(dimmed_storage_key)) || {};
+  }
+  
+  save_dimmed_keys = function(dimmed_keys)
+  {
+    localStorage.setItem(dimmed_storage_key, JSON.stringify(dimmed_keys));
+  }
+  
+  dimmed_key_from_row = function(row)
+  {
+    market_col = row.querySelector(".primary-market-col");
+    event_col = row.querySelector(".event-col");
+    return event_col.textContent + market_col.textContent;
+  }
+  
+  event_dblclicked = function(event)
+  {
+    dimmed_keys = load_dimmed_keys();
+    row = event.currentTarget.parentElement;
+    
+    if(event.currentTarget.classList.contains(dimmed_class))
+    {
+      delete dimmed_keys[dimmed_key_from_row(row)];
+      save_dimmed_keys(dimmed_keys);
+      event.currentTarget.classList.remove(dimmed_class);
+      event.currentTarget.parentElement.style.opacity = 1.0;
+    }
+    else
+    {
+      dimmed_keys[dimmed_key_from_row(row)] = Date.now() + 60*60*12 + 1000;
+      save_dimmed_keys(dimmed_keys);
+      event.currentTarget.classList.add(dimmed_class);
+      event.currentTarget.parentElement.style.opacity = 0.1;
+    }
+  }
+  
+  dim_rows = function(event)
+  {
+    dimmed_keys = load_dimmed_keys();
+    for(row of document.querySelectorAll("tr[app-matched-bet-result-row]"))
+    {
+      if(dimmed_keys[dimmed_key_from_row(row)])
+      {
+        row.style.opacity = 0.1;
+      }
+      else
+      {
+        row.style.opacity = 1.0;
+      }
+    }
+  }
+  
+  delete_old_dimmed_keys = function()
+  {
+    dimmed_keys = load_dimmed_keys();
+    for(dimmed_key of dimmed_keys)
+    {
+      if(parseInt(dimmed_keys[dimmed_key]) < Date.now())
+      {
+        delete dimmed_keys[dimmed_key];
+      }
+    }
+    save_dimmed_keys(dimmed_keys);
   }
   
   textNodes = function(nodes)
@@ -662,8 +741,10 @@
 
 /* On initial load */
 {
-  go_to_markets_events_id = setInterval(add_go_to_markets_events, 100);
+  go_to_markets_events_id = setInterval(add_bet_finder_events, 100);
   check_for_autorefresh_id = setInterval(check_for_autorefresh, 100);
   devigging_events_id = setInterval(add_devigging_events, 100);
+  dim_rows_id = setInterval(dim_rows, 100);
+  delete_old_dimmed_keys_id = setInterval(delete_old_dimmed_keys, 30000);
   load_league();
 }
