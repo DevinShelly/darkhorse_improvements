@@ -6,6 +6,7 @@ In addition, it now devigs automatically while browsing odds. Simply hover your 
 Once you've identified what you think is a line that might have value, you can also check it for value quickly against the broader market. Simply click the line that you think has value and it will turn solid yellow. The rest of the market will turn either green or red depending on if there is value versus that book's fair value. 
 
 To illustrate, here's a screenshot to a tennis line which is a market outlier on Caeasars. Every other book is in green, quickly confirming that it is a market outlier. If you then hover over each book, it will tell you how +EV Caesars line is vs each book, and you can decide for yourself which books you trust to be sharp.
+https://i.imgur.com/bPzsJDH.png
 
 ### Installation
 To install, you first need a browser extension that allows you to load custom Javascript. I use Custom Javascript for Chrome, https://chrome.google.com/webstore/detail/custom-javascript-for-web/ddbjnfjiigjmcpcpkmhogomapikjbjdk?hl=en. 
