@@ -1,5 +1,5 @@
 # DarkHorseOdds Improvements
-This does a few things at the moment. First, it automatically clicks on the update button when it becomes active so that your odds are always as up to date as possible. Second, if you double click on a bet in one of the bet finder screens, it automatically opens the Browse Odds page and opens the page for that particular market so that you can quickly see which side of the market is off.
+The main things this does it make it easier to use the Bet Finder screens to find +EV bets. First, it automatically clicks on the update button when it becomes active so that your odds are always as up to date as possible. Second, if you double click on the Primary Bet or Hedge Bet section in one of the Bet Finder screens, it automatically opens the Browse Odds page and opens the page for that particular market so that you can quickly see which side of the market is off. Third, in order to make new arbs more visible, you can double click on the Event section of a row in one of the Bet Finder screens to dim that row so that new bets stand out more when they show up.
 
 In addition, it now devigs automatically while browsing odds. Simply hover your mouse over a line while browsing odds and it will show you what the fair odds are for that market using the power method. 
 
