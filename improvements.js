@@ -1,6 +1,6 @@
 /* Variables */
 {
-  bankroll = 100000;
+  bankroll = 30000;
   kelly_fraction = 0.25;
   one_way_overround = 1.1;
 }
@@ -608,7 +608,7 @@
   
   devigged_power = function(odds)
   {
-    let percentages = parse_odds_to_percentages(odds);
+    percentages = parse_odds_to_percentages(odds);
     if(!percentages)
     {
       return null;
