@@ -19,7 +19,7 @@ bankroll = 100000;
 kelly_fraction = 0.25;
 ```
 
-Finally, for one-sided markets, the market juice has to be estimated. By default, it's set to 10%, but you can change that to however you want by pasting the following variable.
+Finally, for one-sided markets, the market juice has to be estimated. By default, it's set to 10%, but you can change that to whatever you want by pasting the following variable.
 
 ```
 one_way_overround = 1.1;
