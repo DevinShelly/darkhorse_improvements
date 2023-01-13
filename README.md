@@ -15,7 +15,7 @@ Then go to darkhorseodds.com and click on the CJS icon at the top. Then click th
 ### Customization
 To customize the Kelly criterion values for your individual bankroll, then copy and paste the following variables into the empty Custom Javascript page while browsing DarkHorseOdds. Then the tooltip that pops up when you've identified a soft line will match those values.
 ```
-bankroll = 30000;
+bankroll = 100000;
 kelly_fraction = 0.25;
 ```
 
