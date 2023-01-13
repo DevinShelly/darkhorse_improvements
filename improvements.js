@@ -1,6 +1,6 @@
 /* Variables */
 {
-  bankroll = 30000;
+  bankroll = 100000;
   kelly_fraction = 0.25;
   one_way_overround = 1.1;
 }
