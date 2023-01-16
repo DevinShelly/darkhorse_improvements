@@ -500,7 +500,6 @@
       cell.onmouseover = add_devigged_odds_to_title;
       cell.oncontextmenu = add_to_parlay;
       cell.onclick = toggle_soft_line;
-      cell.onscroll = change_parlay_odds;
     }
   }
   
@@ -520,8 +519,7 @@
   toggle_soft_line = function(event)
   {
     cell = event.currentTarget;
-    
-    if(cell.textContent.trim() == "-")
+    if(row_for_cell(cell).getElementsByClassName(parlay_class).length || cell.textContent.trim() == "-")
     {
       return;
     }
@@ -602,7 +600,7 @@
   const parlay_key = "parlay-key";
   parlay_data = function()
   {
-    return JSON.parse(localStorage.getItem(parlay_key)) || {percentage: 1, legs: []};
+    return JSON.parse(localStorage.getItem(parlay_key)) || [];
   }
   
   save_parlay_data = function(data)
@@ -612,20 +610,20 @@
   
   add_to_parlay = function(event)
   {
+    console_log("added_to_parlay");
     cell = event.currentTarget;
-    if(cell.textContent.trim() == "-")
+    
+    if(cell.textContent.trim() == "-" || cell.classList.contains(sharp_class) || cell.classList.contains(soft_class))
     {
       return true;
     }
-    highlight_parlay_cell(cell);
     
-    devigged_odds = devigged_odds_for_cell(cell);
-    devigged_percentages = devigged_percentages_for_cell(cell);
     data = parlay_data();
-    data.percentage = parseFloat(data.percentage) * devigged_percentages.power;
-    data.legs.push(leg_data_from_cell(cell));
+    data.push(leg_data_from_cell(cell));
     save_parlay_data(data);
+    highlight_parlay_cell(cell);
     update_parlay_cell_titles();
+    
     
     return false;
   }
@@ -642,7 +640,7 @@
   leg_data_from_cell = function(cell)
   {
     row = row_for_cell(cell);
-    index = Array.from(row.childNodes).indexOf(cell);
+    index = Array.from(cells()).indexOf(cell);
     side = Array.from(row.querySelectorAll(".row-header-col")).map(x => x.textContent.trim()).join(" ");
     title = document.querySelector("mat-card-title").textContent;
     market_info = Array.from(dropdowns()).map(x => x.textContent).join();
@@ -654,9 +652,14 @@
   update_parlay_cell_titles = function()
   {
     data = parlay_data();
+    fair_parlay_percentage = 1;
+    for(leg of data)
+    {
+      fair_parlay_percentage = odds_to_percentage(leg.odds)*fair_parlay_percentage;
+    }
     for(cell of document.getElementsByClassName(parlay_class))
     {
-      cell.title = data.legs.map(x => x.side + " " + x.odds).join("\n") + "\nFair: " + percentage_to_odds(data.percentage);
+      cell.title = data.map(x => x.side + " " + x.odds).join("\n") + "\nFair: " + percentage_to_odds(fair_parlay_percentage);
     }
   }
   
@@ -666,11 +669,9 @@
     
     cell.oncontextmenu = add_to_parlay;
     make_cell_normal(event.currentTarget);
-    
-    devigged_percentages = devigged_percentages_for_cell(cell);
     data = parlay_data();
-    data.percentage = parseFloat(data.percentage)/devigged_percentages.power;
-    data.legs = data.legs.filter(x => JSON.stringify(x) != JSON.stringify(leg_data_from_cell(cell)));
+    leg_data = leg_data_from_cell(cell);
+    data = data.filter(x => x.title != leg_data.title || x.dropdown != leg_data.dropdown || x.index != leg_data.index);
     save_parlay_data(data);
     update_parlay_cell_titles();
     
@@ -679,34 +680,19 @@
   
   highlight_parlay_members = function()
   {
-    // cell_checked_class = "cell-checked-class";
-    // if(document.getElementsByClassName(cell_checked_class) > 0)
-    // {
-    //   return;
-    // }
-    
-    // legs = parlay_data().legs.map(x => JSON.stringify(x));
-    // for(cell of cells())
-    // {
-    //   leg_data = JSON.stringify(leg_data_from_cell(cell));
-    //   if(legs.indexOf(leg_data)!= -1)
-    //   {
-    //     highlight_parlay_cell(cell);
-    //   }
-    //   cell.classList.add(cell_checked_class);
-    //   return;
-    // }
+    for(cell of cells())
+    {
+      leg_data = leg_data_from_cell(cell);
+      if(parlay_data().filter(x => x.index == leg_data.index && x.title == leg_data.title && x.dropdown == leg_data.dropdown).length)
+      {
+        highlight_parlay_cell(cell);
+      }
+    }
   }
   
   clear_parlay = function()
   {
-    save_parlay_data({percentage: 1, legs: []});
-    return false;
-  }
-  
-  change_parlay_odds = function(event)
-  {
-    return false;
+    save_parlay_data([]);
   }
   
   add_devigged_odds_to_title = function(event)
