@@ -98,49 +98,41 @@
   
   select_correct_market = function()
   {
-    //if focus is unavailable, try again later
-    if(!document.querySelector("app-browse-odds-table"))
-    {
-      setTimeout(select_correct_market, 100);
-      return;
-    }
-    
     //Wait for event to finish loading and try again
-    if(dropdowns().length == 0)
+    if(!dropdowns().length)
     {
       setTimeout(select_correct_market, 100);
       return;
     }
     
-    //Change to correct market category if not already loaded
-    if(params().get("segment") && dropdowns().length != 3)
+    /* Select the correct category and then return if not already selected */
+    if(params().get("category") && dropdowns()[0].textContent.trim() != params().get("category"))
     {
       select_correct_category();
       return;
     }
     
-    //Select next category if we're in a market segment but not loading one
-    if(!params().get("segment") && dropdowns().length == 3)
+    /* If the market is already selected, do nothing */
+    if(dropdowns()[dropdowns().length-1].textContent.trim() == params().get("market"))
     {
-      select_next_category();
       return;
     }
     
-    //open market dropdown if closed and try again
-    if(dropdown_options().length == 0)
+    /* Open the market dropdowns if not open */
+    if(!dropdown_options().length)
     {
       dropdowns()[dropdowns().length-1].click();
       wait_until_dropdowns_open(select_correct_market);
       return;
     }
     
-    //select the correct market if available
+    /* Select the correct market if available */
     for(dropdown_option of dropdown_options())
     {
-      if(dropdown_option.textContent.trim()  == params().get("market"))
+      /*Check for exact match or where Total Score is equivalent to Total Goals or Total Runs */
+      if(dropdown_option.textContent.trim() == params().get("market") || dropdown_option.textContent.trim().replace("Total Goals", "Total Score") == params().get("market") || dropdown_option.textContent.trim().replace("Total Runs", "Total Score") == params().get("market"))
       {
         dropdown_option.click();
-        wait_until_dropdowns_close(scroll_to_bet);
         return;
       }
     }
@@ -167,36 +159,12 @@
       return;
     }
     
-    segment = params().get("segment");
-    //Select the proper category, then select the correct segment
     for(dropdown_option of dropdown_options())
     {
-      if(segment.includes("Half") && dropdown_option.textContent.includes("Halves"))
+      if(dropdown_option.textContent.trim() == params().get("category"))
       {
         dropdown_option.click();
         wait_until_dropdowns_close(select_correct_segment);
-        params().set("segment", segment.replace("Half", "").trim());
-        return;
-      }
-      else if(segment.includes("Quarter") && dropdown_option.textContent.includes("Quarters"))
-      {
-        dropdown_option.click();
-        wait_until_dropdowns_close(select_correct_segment);
-        params().set("segment", segment.replace("Quarter", "").trim());
-        return;
-      }
-      else if(segment.includes("Period") && dropdown_option.textContent.includes("Periods"))
-      {
-        dropdown_option.click();
-        wait_until_dropdowns_close(select_correct_segment);
-        params().set("segment", segment.replace("Period", "").trim());
-        return;
-      }
-      else if(segment.includes("Set") && dropdown_option.textContent.includes("Set"))
-      {
-        params().delete("segment");
-        dropdown_option.click();
-        wait_until_dropdowns_close(select_correct_market);
         return;
       }
     }
@@ -204,10 +172,10 @@
   
   select_correct_segment = function()
   {
-    //if focus is unavailable, try again later
-    if(!document.querySelector("app-browse-odds-table"))
+    /* Select correct market if no segment available */
+    if(!params().get("segment"))
     {
-      setTimeout(select_correct_segment, 100);
+      select_correct_market();
       return;
     }
     
@@ -216,6 +184,7 @@
     {
       dropdowns()[1].click();
       wait_until_dropdowns_open(select_correct_segment);
+      return;
     }
     
     //open the correct segment, then select the market
@@ -232,13 +201,6 @@
   
   select_next_category = function()
   {
-    //if focus is unavailable, try again later
-    if(!document.querySelector("app-browse-odds-table"))
-    {
-      setTimeout(select_next_category, 100);
-      return;
-    }
-    
     //open the categories if closed and try again
     if(!dropdown_options().length)
     {
@@ -254,11 +216,12 @@
       {
         dropdown_option.parentElement.nextElementSibling.firstElementChild.click();
         wait_until_dropdowns_close(select_correct_market);
+        return;
       }
     }
     
     //If we've somehow reached the end, close the menu and do nothing
-    dropdown_option.click();
+    //dropdown_option.click();
   }
   
   scroll_to_bet = function()
@@ -343,15 +306,69 @@
   }
   
   /* Fix any discrepancies between bet finder and browse odds manually */
-  sanitized_market_name = function(market, segment)
+  sanitized_params = function(parameters)
   {
-    //Quarter/Half markets combine alts and main lines into one page, so get rid of Alt Total
-    market = (segment && market) == "Alt Total" ? "Total Score" : market;
-    market = (segment && market) == "Alt Spread" ? "Spread" : market;
+    sanitized = JSON.parse(JSON.stringify(parameters));
+    switch (sanitized.league) {
+      case "EPL":
+        sanitized.league = "Premier League";
+        break;
+    };
     
-    market = (market == "Total Match Games") ? "Total Games" : market;
+    switch (sanitized.segment) {
+      case "1st Quarter":
+      case "2nd Quarter":
+      case "3rd Quarter":
+      case "4th Quarter":
+        sanitized.segment = sanitized.segment.split(" Quarter")[0];
+        sanitized.category = "Quarters";
+        break;
+      case "1st Half":
+      case "2nd Half":
+        sanitized.segment = sanitized.segment.split(" Half")[0];
+        sanitized.category = "Halves";
+        break;
+      case "1st Period":
+      case "2nd Period":
+      case "3rd Period":
+        sanitized.segment = sanitized.segment.split(" Period")[0];
+        sanitized.category = "Periods";
+        break;
+      case "1st Set":
+      case "2nd Set":
+      case "3rd Set":
+      case "4th Set":
+      case "5th Set":
+        delete sanitized.segment;
+        sanitized.category = "Set Lines";
+        break;
+    };
     
-    return market;
+    switch(sanitized.market)
+    {
+      case "Alt Spread":
+        if(sanitized.category)
+        {
+          sanitized.market = "Spread";
+        }
+        break;
+      case "Alt Total":
+        if(sanitized.category)
+        {
+          sanitized.market = "Total Score";
+        }
+        else
+        {
+          sanitized.market = "Alt Total Score"
+        }
+        break;
+      case "Alt Total Match Games":
+      case "Total Match Games":
+        sanitized.market = sanitized.market.replace("Match Games", "Games");
+        
+    }
+    
+    return sanitized;
   }
   
   market_dblclicked = function(event)
@@ -365,13 +382,18 @@
     market = market_col.querySelector("app-market-chip").textContent.trim()
     segment = market_col.querySelector("app-segment-chip") ? market_col.querySelector("app-segment-chip").textContent.trim() : null;
     value = market_col.getElementsByClassName("market")[0].textContent.trim();
-    market = sanitized_market_name(market, segment);
+    parameters = {league: league, team1: team1, team2: team2, market: market, segment: segment, value: value};
+    if(!segment)
+    {
+      delete parameters.segment;
+    }
+    sanitized_parameters = sanitized_params(parameters);
     
-    
-    
-    query_string = `?league=${league}&team1=${team1}&team2=${team2}&market=${market}&value=${value}`;
-    query_string = segment ? query_string + `&segment=${segment}` : query_string;
-    browse_odds_url = "https://darkhorseodds.com/browse-odds"+query_string;
+    browse_odds_url = "https://darkhorseodds.com/browse-odds?";
+    for(param in sanitized_parameters)
+    {
+      browse_odds_url = browse_odds_url + param + "=" + sanitized_parameters[param] + "&";
+    }
     window.open(browse_odds_url);
   }
   
@@ -431,10 +453,10 @@
     }
   }
   
-  delete_old_dimmed_keys = function()
+  delete_old_data = function()
   {
     dimmed_keys = load_dimmed_keys();
-    for(dimmed_key of dimmed_keys)
+    for(dimmed_key in dimmed_keys)
     {
       if(parseInt(dimmed_keys[dimmed_key]) < Date.now())
       {
@@ -460,24 +482,36 @@
 
 /* Devigging methods */
 {
+  cells = function()
+  {
+    return document.querySelectorAll("tr.odds-row-bottom td.book-col, tr.odds-row-top td.book-col,tr.odds-row-middle td.book-col");
+
+  }
+  
   add_devigging_events = function()
   {
-    for (cell of document.querySelectorAll("app-browse-odds-table-single-cell"))
+    for (cell of cells())
     {
       if(cell.onmouseover)
       {
         continue;
       }
       
-      cell.parentElement.onmouseover = add_devigged_odds_to_title;
-      cell.parentElement.oncontextmenu = add_to_parlay;
-      cell.parentElement.onclick = toggle_soft_line;
+      cell.onmouseover = add_devigged_odds_to_title;
+      cell.oncontextmenu = add_to_parlay;
+      cell.onclick = toggle_soft_line;
+      cell.onscroll = change_parlay_odds;
     }
   }
   
-  cells_from_row = function(row)
+  cells_for_row = function(row)
   {
     return row.querySelectorAll("td.book-col");
+  }
+  
+  row_for_cell = function(cell)
+  {
+    return cell.parentElement;
   }
   
   const soft_class = "soft-class";
@@ -486,7 +520,6 @@
   toggle_soft_line = function(event)
   {
     cell = event.currentTarget;
-    row = cell.parentElement;
     
     if(cell.textContent.trim() == "-")
     {
@@ -495,19 +528,19 @@
     
     if(event.currentTarget.classList.contains(soft_class))
     {
-      make_row_normal(row);
+      make_row_normal(row_for_cell(cell));
     }
     else
     {
       make_cell_soft(cell);
-      make_row_sharp(row);
+      make_row_sharp(row_for_cell(cell));
     }
   }
   
   make_row_sharp = function(row)
   {
     soft_cell = row.querySelector(`.${soft_class}`);
-    for(cell of cells_from_row(row))
+    for(cell of cells_for_row(row))
     {
       if(cell.classList.contains(soft_class))
       {
@@ -538,8 +571,7 @@
   
   make_cell_soft = function(cell)
   {
-    row = cell.parentElement;
-    for(previous_soft_cell of row.getElementsByClassName(soft_class))
+    for(previous_soft_cell of row_for_cell(cell).getElementsByClassName(soft_class))
     {
       previous_soft_cell.classList.remove(soft_class);
     }
@@ -550,7 +582,7 @@
   
   make_row_normal = function(row)
   {
-    for(cell of cells_from_row(row))
+    for(cell of cells_for_row(row))
     {
       make_cell_normal(cell);
     }
@@ -560,12 +592,119 @@
   {
     cell.classList.remove(soft_class);
     cell.classList.remove(sharp_class);
+    cell.classList.remove(parlay_class);
     cell.firstElementChild.firstElementChild.style.backgroundColor = "rgb(29, 39, 49)";
     cell.firstElementChild.firstElementChild.style.color = "White";
     cell.removeAttribute("title");
   }
   
-  add_to_parlay = function()
+  const parlay_class = "parlay-class";
+  const parlay_key = "parlay-key";
+  parlay_data = function()
+  {
+    return JSON.parse(localStorage.getItem(parlay_key)) || {percentage: 1, legs: []};
+  }
+  
+  save_parlay_data = function(data)
+  {
+    localStorage.setItem(parlay_key, JSON.stringify(data));
+  }
+  
+  add_to_parlay = function(event)
+  {
+    cell = event.currentTarget;
+    if(cell.textContent.trim() == "-")
+    {
+      return true;
+    }
+    highlight_parlay_cell(cell);
+    
+    devigged_odds = devigged_odds_for_cell(cell);
+    devigged_percentages = devigged_percentages_for_cell(cell);
+    data = parlay_data();
+    data.percentage = parseFloat(data.percentage) * devigged_percentages.power;
+    data.legs.push(leg_data_from_cell(cell));
+    save_parlay_data(data);
+    update_parlay_cell_titles();
+    
+    return false;
+  }
+  
+  highlight_parlay_cell = function(cell)
+  {
+    cell.oncontextmenu = remove_from_parlay;
+    cell.classList.add(parlay_class);
+    cell.firstElementChild.firstElementChild.style.backgroundColor = "LightBlue";
+    cell.firstElementChild.firstElementChild.style.color = "Black";
+    update_parlay_cell_titles();
+  }
+  
+  leg_data_from_cell = function(cell)
+  {
+    row = row_for_cell(cell);
+    index = Array.from(row.childNodes).indexOf(cell);
+    side = Array.from(row.querySelectorAll(".row-header-col")).map(x => x.textContent.trim()).join(" ");
+    title = document.querySelector("mat-card-title").textContent;
+    market_info = Array.from(dropdowns()).map(x => x.textContent).join();
+    devigged_odds = devigged_odds_for_cell(cell);
+    
+    return ({side: side, odds: devigged_odds.power, title: title, dropdown: market_info, index: index});
+  }
+  
+  update_parlay_cell_titles = function()
+  {
+    data = parlay_data();
+    for(cell of document.getElementsByClassName(parlay_class))
+    {
+      cell.title = data.legs.map(x => x.side + " " + x.odds).join("\n") + "\nFair: " + percentage_to_odds(data.percentage);
+    }
+  }
+  
+  remove_from_parlay = function(event)
+  {
+    cell = event.currentTarget;
+    
+    cell.oncontextmenu = add_to_parlay;
+    make_cell_normal(event.currentTarget);
+    
+    devigged_percentages = devigged_percentages_for_cell(cell);
+    data = parlay_data();
+    data.percentage = parseFloat(data.percentage)/devigged_percentages.power;
+    data.legs = data.legs.filter(x => JSON.stringify(x) != JSON.stringify(leg_data_from_cell(cell)));
+    save_parlay_data(data);
+    update_parlay_cell_titles();
+    
+    return false;
+  }
+  
+  highlight_parlay_members = function()
+  {
+    // cell_checked_class = "cell-checked-class";
+    // if(document.getElementsByClassName(cell_checked_class) > 0)
+    // {
+    //   return;
+    // }
+    
+    // legs = parlay_data().legs.map(x => JSON.stringify(x));
+    // for(cell of cells())
+    // {
+    //   leg_data = JSON.stringify(leg_data_from_cell(cell));
+    //   if(legs.indexOf(leg_data)!= -1)
+    //   {
+    //     highlight_parlay_cell(cell);
+    //   }
+    //   cell.classList.add(cell_checked_class);
+    //   return;
+    // }
+  }
+  
+  clear_parlay = function()
+  {
+    save_parlay_data({percentage: 1, legs: []});
+    return false;
+  }
+  
+  change_parlay_odds = function(event)
   {
     return false;
   }
@@ -634,7 +773,7 @@
   devigged_odds_for_cell = function(cell)
   {
     odds = [cell.textContent];
-    row = cell.parentElement;
+    row = row_for_cell(cell);
     cell_index = Array.from(row.childNodes).indexOf(cell);
     if(row.classList.contains("odds-row-top") || row.classList.contains("odds-row-middle"))
     {
@@ -745,6 +884,8 @@
   check_for_autorefresh_id = setInterval(check_for_autorefresh, 100);
   devigging_events_id = setInterval(add_devigging_events, 100);
   dim_rows_id = setInterval(dim_rows, 100);
-  delete_old_dimmed_keys_id = setInterval(delete_old_dimmed_keys, 30000);
+  delete_old_data = setInterval(delete_old_data, 30000);
+  highlight_parlay_cell_id = setInterval(highlight_parlay_members, 100);
   load_league();
+  clear_parlay();
 }
