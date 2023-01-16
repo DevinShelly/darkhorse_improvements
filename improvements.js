@@ -1,3 +1,6 @@
+/* Version: 1.0 */
+/* Date: 1/16/23 */
+
 /* Variables */
 {
   bankroll = 30000;
@@ -34,6 +37,7 @@
   
   load_league = function()
   {
+    console_log("Attempting to load league");
     league_list = document.querySelector("app-browse-odd-league-list");
     if (!league_list)
     {
@@ -133,6 +137,7 @@
       if(dropdown_option.textContent.trim() == params().get("market") || dropdown_option.textContent.trim().replace("Total Goals", "Total Score") == params().get("market") || dropdown_option.textContent.trim().replace("Total Runs", "Total Score") == params().get("market"))
       {
         dropdown_option.click();
+        wait_until_dropdowns_close(scroll_to_bet);
         return;
       }
     }
@@ -226,11 +231,18 @@
   
   scroll_to_bet = function()
   {
-    for(row of document.querySelectorAll(".odds-row-top, .odds-row-bottom"))
+    /* If the rows haven't loaded yet, wait for them */
+    if(!rows().length)
+    {
+      setTimeout(scroll_to_bet, 100);
+      return;
+    }
+    
+    for(row of rows())
     {
       if(row.textContent.replaceAll(" ", "").includes(params().get("value").replaceAll(" ", "")))
       {
-        row.scrollIntoView(false);
+        row.scrollIntoView({behavior: "smooth", block: "center"});
         return;
       }
     }
@@ -392,7 +404,7 @@
     browse_odds_url = "https://darkhorseodds.com/browse-odds?";
     for(param in sanitized_parameters)
     {
-      browse_odds_url = browse_odds_url + param + "=" + sanitized_parameters[param] + "&";
+      browse_odds_url = browse_odds_url + param + "=" + encodeURIComponent(sanitized_parameters[param]) + "&";
     }
     window.open(browse_odds_url);
   }
@@ -485,7 +497,11 @@
   cells = function()
   {
     return document.querySelectorAll("tr.odds-row-bottom td.book-col, tr.odds-row-top td.book-col,tr.odds-row-middle td.book-col");
-
+  }
+  
+  rows = function()
+  {
+    return document.querySelectorAll("tr.odds-row-top, tr.odds-row-middle, tr.odds-row-bottom");
   }
   
   add_devigging_events = function()
@@ -680,6 +696,11 @@
   
   highlight_parlay_members = function()
   {
+    parlay_checked_class = "parlay-checked";
+    if(!parlay_data().length || document.querySelector(`.${parlay_checked_class}`))
+    {
+      return;
+    }
     for(cell of cells())
     {
       leg_data = leg_data_from_cell(cell);
@@ -687,6 +708,7 @@
       {
         highlight_parlay_cell(cell);
       }
+      cell.classList.add(parlay_checked_class);
     }
   }
   
