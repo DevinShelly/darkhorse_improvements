@@ -8,6 +8,8 @@ Once you've identified what you think is a line that might have value, you can a
 To illustrate, here's a screenshot to a tennis line which is a market outlier on Caeasars. Every other book is in green, quickly confirming that it is a market outlier. If you then hover over each book, it will tell you how +EV Caesars line is vs each book, and you can decide for yourself which books you trust to be sharp.
 https://i.imgur.com/bPzsJDH.png
 
+Finally, if you want to devig a parlay, right click on a cell. This will turn it blue and add it to the parlay. Hover over that cell and it will display all the legs of the parlay, their various fair lines, and the final fair line of the parlay overall. To remove a leg from a parlay, simply right click that blue cell again and it will return to normal. To clear a parlay fully and start over without removing each line individually, simply refresh the page.
+
 ### Installation
 To install, you first need a browser extension that allows you to load custom Javascript. I use Custom Javascript for Chrome, https://chrome.google.com/webstore/detail/custom-javascript-for-web/ddbjnfjiigjmcpcpkmhogomapikjbjdk?hl=en. 
 
