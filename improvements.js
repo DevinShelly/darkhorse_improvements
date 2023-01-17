@@ -1,5 +1,6 @@
 /* Version: 1.0 */
 /* Date: 1/16/23 */
+const VERSION = "1.0.1";
 
 /* Variables */
 {
@@ -37,7 +38,6 @@
   
   load_league = function()
   {
-    console_log("Attempting to load league");
     league_list = document.querySelector("app-browse-odd-league-list");
     if (!league_list)
     {
@@ -77,15 +77,17 @@
       return;
     }
     
-    team1 = params().get("team1");
-    team2 = params().get("team2");
+    team1 = params().get("team1").replaceAll(" ", "");
+    team2 = params().get("team2").replaceAll(" ", "");
     
     for(event of events)
     {
-      if(event.textContent.includes(team1) && event.textContent.includes(team2))
+      event_text = event.textContent.replaceAll(" ", "");
+      if(event_text.includes(team1) && event_text.includes(team2))
       {
         event.querySelector("mat-card").firstChild.click()
         select_correct_market();
+        return;
       }
     }
   }
@@ -442,7 +444,7 @@
     }
     else
     {
-      dimmed_keys[dimmed_key_from_row(row)] = Date.now() + 60*60*12 + 1000;
+      dimmed_keys[dimmed_key_from_row(row)] = Date.now() + 60*60*12*1000;
       save_dimmed_keys(dimmed_keys);
       event.currentTarget.classList.add(dimmed_class);
       event.currentTarget.parentElement.style.opacity = 0.1;
