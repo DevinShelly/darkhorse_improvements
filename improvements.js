@@ -1,6 +1,6 @@
-/* Version: 1.0 */
-/* Date: 1/16/23 */
-const VERSION = "1.0.1";
+/* Version: 1.0.2 */
+/* Date: 1/17/23 */
+const VERSION = "1.0.2";
 
 /* Variables */
 {
@@ -360,6 +360,9 @@ const VERSION = "1.0.1";
     
     switch(sanitized.market)
     {
+      case "Total":
+        sanitized.market = "Total Score";
+        break;
       case "Alt Spread":
         if(sanitized.category)
         {
