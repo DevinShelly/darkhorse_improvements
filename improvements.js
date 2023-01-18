@@ -1,6 +1,6 @@
-/* Version: 1.0.3 */
+/* Version: 1.0.4 */
 /* Date: 1/18/23 */
-const VERSION = "1.0.3";
+const VERSION = "1.0.4";
 
 /* Variables */
 {
@@ -253,10 +253,9 @@ const VERSION = "1.0.3";
         {
           continue;
         }
-        
-        row.scrollIntoView({behavior: "smooth", block: "center"});
         make_cell_soft(book_cell);
         make_row_sharp(row);
+        row.scrollIntoView({behavior: "smooth", block: "center"});
         return;
       }
     }
@@ -411,7 +410,7 @@ const VERSION = "1.0.3";
     market = market_col.querySelector("app-market-chip").textContent.trim()
     segment = market_col.querySelector("app-segment-chip") ? market_col.querySelector("app-segment-chip").textContent.trim() : null;
     value = market_col.getElementsByClassName("market")[0].textContent.trim();
-    book_col = market_col.previousElementSibling;
+    book_col = market_col.classList.contains("primary-market-col") ? market_col.previousElementSibling : market_col.nextElementSibling;
     book = book_col.querySelector("img").getAttribute("alt");
     parameters = {league: league, team1: team1, team2: team2, market: market, segment: segment, value: value, book: book};
     
