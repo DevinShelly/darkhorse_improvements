@@ -1,6 +1,6 @@
-/* Version: 1.0.2 */
-/* Date: 1/17/23 */
-const VERSION = "1.0.2";
+/* Version: 1.0.3 */
+/* Date: 1/18/23 */
+const VERSION = "1.0.3";
 
 /* Variables */
 {
@@ -118,9 +118,10 @@ const VERSION = "1.0.2";
       return;
     }
     
-    /* If the market is already selected, do nothing */
+    /* If the market is already selected, scroll to the correct bet */
     if(dropdowns()[dropdowns().length-1].textContent.trim() == params().get("market"))
     {
+      scroll_to_bet();
       return;
     }
     
@@ -240,11 +241,22 @@ const VERSION = "1.0.2";
       return;
     }
     
+    books = Array.from(document.querySelectorAll("app-sportsbook-icon img")).map(x=>x.getAttribute("alt"));
+    book_index = books.indexOf(params().get("book"));
     for(row of rows())
     {
       if(row.textContent.replaceAll(" ", "").includes(params().get("value").replaceAll(" ", "")))
       {
+        /* Sometimes alt lines/main lines are in different rows, so scroll to the proper one */
+        book_cell = cells_for_row(row)[book_index];
+        if(book_cell.textContent.trim() == "-")
+        {
+          continue;
+        }
+        
         row.scrollIntoView({behavior: "smooth", block: "center"});
+        make_cell_soft(book_cell);
+        make_row_sharp(row);
         return;
       }
     }
@@ -399,7 +411,10 @@ const VERSION = "1.0.2";
     market = market_col.querySelector("app-market-chip").textContent.trim()
     segment = market_col.querySelector("app-segment-chip") ? market_col.querySelector("app-segment-chip").textContent.trim() : null;
     value = market_col.getElementsByClassName("market")[0].textContent.trim();
-    parameters = {league: league, team1: team1, team2: team2, market: market, segment: segment, value: value};
+    book_col = market_col.previousElementSibling;
+    book = book_col.querySelector("img").getAttribute("alt");
+    parameters = {league: league, team1: team1, team2: team2, market: market, segment: segment, value: value, book: book};
+    
     if(!segment)
     {
       delete parameters.segment;
