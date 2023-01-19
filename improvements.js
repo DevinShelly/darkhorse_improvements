@@ -1,5 +1,6 @@
+/* Version: 1.0.6 */
 /* Date: 1/18/23 */
-const VERSION = "1.0.5";
+const VERSION = "1.0.6";
 
 /* Variables */
 {
@@ -403,22 +404,17 @@ const VERSION = "1.0.5";
   
   market_dblclicked = function(event)
   {
-    market_col = event.currentTarget;
-    
     event_col_texts = textNodes(event.currentTarget.parentElement.getElementsByClassName("event-col")[0].childNodes);
     league = event_col_texts[0].textContent.trim();
     team1 = event_col_texts[1].textContent.trim();
     team2 = event_col_texts[2].textContent.trim();
-    market_cols = market_col.parentElement.querySelectorAll(".primary-market-col", ".hedge-market-col");
-    books_cols = market_col.parentElement.querySelectorAll(".primary-books-col", ".hedge-books-col");
     
+    market_col = event.currentTarget;
     market = market_col.querySelector("app-market-chip").textContent.trim()
     segment = market_col.querySelector("app-segment-chip") ? market_col.querySelector("app-segment-chip").textContent.trim() : null;
     value = market_col.getElementsByClassName("market")[0].textContent.trim();
-    book_col = market_col == market_cols[0] ? books_cols[0] : books_cols[1];
-    //book = book_col.querySelector("img").getAttribute("alt");
-    //hedge_col = market_col == market_cols[]
-    
+    book_col = market_col.classList.contains("primary-market-col") ? market_col.previousElementSibling : market_col.nextElementSibling;
+    book = book_col.querySelector("img").getAttribute("alt");
     parameters = {league: league, team1: team1, team2: team2, market: market, segment: segment, value: value, book: book};
     
     if(!segment)
@@ -563,9 +559,6 @@ const VERSION = "1.0.5";
     cell = event.currentTarget;
     if(row_for_cell(cell).getElementsByClassName(parlay_class).length || cell.textContent.trim() == "-")
     {
-      cell.textContent = ""
-      textInput = document.create
-      cell.
       return;
     }
     
