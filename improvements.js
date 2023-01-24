@@ -1,6 +1,6 @@
-/* Version: 1.0.7 */
+/* Version: 1.0.8 */
 /* Date: 1/24/23 */
-const VERSION = "1.0.7";
+const VERSION = "1.0.8";
 
 /* Variables */
 {
@@ -578,6 +578,11 @@ const VERSION = "1.0.7";
   make_row_sharp = function(row)
   {
     soft_cell = row.querySelector(`.${soft_class}`);
+    if(!soft_cell)
+    {
+      setTimeout(make_row_sharp, 100, row);
+      return;
+    }
     for(cell of cells_for_row(row))
     {
       if(cell.classList.contains(soft_class))
