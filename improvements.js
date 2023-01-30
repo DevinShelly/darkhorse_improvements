@@ -1,6 +1,6 @@
-/* Version: 1.0.8 */
-/* Date: 1/24/23 */
-const VERSION = "1.0.8";
+/* Version: 1.0.9 */
+/* Date: 1/30/23 */
+const VERSION = "1.0.9";
 
 /* Variables */
 {
@@ -85,9 +85,16 @@ const VERSION = "1.0.8";
       event_text = event.textContent.replaceAll(" ", "");
       if(event_text.includes(team1) && event_text.includes(team2))
       {
-        event.querySelector("mat-card").firstChild.click()
-        select_correct_market();
-        return;
+        for(odds of event.querySelectorAll("app-single-odds-box-widget"))
+        {
+          if(odds.textContent.trim() != "-")
+          {
+            event.querySelector("mat-card").firstChild.click()
+            select_correct_market();
+            return;
+          }
+        }
+        
       }
     }
   }
