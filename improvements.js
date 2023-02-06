@@ -1,6 +1,6 @@
-/* Version: 1.0.9 */
-/* Date: 1/30/23 */
-const VERSION = "1.0.9";
+/* Version: 1.0.10 */
+/* Date: 2/6/23 */
+const VERSION = "1.0.10";
 
 /* Variables */
 {
@@ -26,6 +26,86 @@ const VERSION = "1.0.9";
   console_display = function()
   {
     return console_string;
+  }
+}
+
+/* Showing/hiding and sorting markets */
+
+add_odds_dblclick_handlers = function()
+{
+  for(row of rows())
+  {
+    if(row.ondblclick)
+    {
+      return;
+    }
+    if(!row.classList.contains("hold-row"))
+    {
+      row.ondblclick = hide_other_rows;
+    }
+  }
+}
+
+setInterval(add_odds_dblclick_handlers, 100);
+
+hide_other_rows = function(event)
+{
+  if(!event.currentTarget.querySelector(".total-col"))
+  {
+    return;
+  }
+  
+  show_next_hold_row = false;
+  total_value = event.currentTarget.querySelector(".total-col").textContent;
+  background_color = "#2f3e4e";
+  for(row of all_rows())
+  {
+    /* Row that should be shown */
+    if(row.querySelector(".total-col").textContent == total_value)
+    {
+      row.ondblclick = show_other_rows;
+      show_next_hold_row = true;
+      set_row_color(row, background_color);
+    }
+    /* Row that should be hidden */
+    else if(!show_next_hold_row || !row.classList.contains("hold-row"))
+    {
+      row.hidden = true;
+    }
+    /* Hold row that should be shown for spacing purposes */
+    else
+    {
+      show_next_hold_row = false;
+      set_row_color(row, background_color);
+      if(background_color == "#2f3e4e")
+      {
+        background_color = "#263441";
+      }
+      else
+      {
+        background_color = "#2f3e4e";
+      }
+    }
+  }
+}
+
+set_row_color = function(row, color)
+{
+  row.style.backgroundColor = color;
+  for(child of row.children)
+  {
+    child.style.backgroundColor = color;
+  }
+  
+}
+
+show_other_rows = function(event)
+{
+  for(row of all_rows())
+  {
+    row.hidden = false;
+    row.ondblclick = null;
+    set_row_color(row, null);
   }
 }
 
@@ -535,6 +615,11 @@ const VERSION = "1.0.9";
     return document.querySelectorAll("tr.odds-row-top, tr.odds-row-middle, tr.odds-row-bottom");
   }
   
+  all_rows = function()
+  {
+    return document.querySelectorAll("tr.odds-row-top, tr.odds-row-middle, tr.odds-row-bottom, tr.hold-row");
+  }
+  
   add_devigging_events = function()
   {
     for (cell of cells())
@@ -547,6 +632,7 @@ const VERSION = "1.0.9";
       cell.onmouseover = add_devigged_odds_to_title;
       cell.oncontextmenu = add_to_parlay;
       cell.onclick = toggle_soft_line;
+      cell.ondblclick = function(event){event.stopPropagation()};
     }
   }
   
