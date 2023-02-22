@@ -1,12 +1,12 @@
-/* Version: 1.0.11 */
-/* Date: 2/15/23 */
-const VERSION = "1.0.11";
+/* Version: 1.0.12 */
+/* Date: 2/21/23 */
+const VERSION = "1.0.12";
 
 /* Variables */
 {
-  bankroll = 30000;
-  kelly_fraction = 0.25;
-  one_way_overround = 1.1;
+  bankroll = 35000;
+  kelly_fraction = 0.33;
+  one_way_overround = 1.07;
 }
 
 /* DH seems to disable the console, so a quick workaround */
@@ -428,6 +428,12 @@ show_other_rows = function(event)
       case "BULIGA":
         sanitized.league = "Bundesliga";
         break;
+      case "UEFA-CL":
+        sanitized.league = "UEFA Champions";
+        break;
+      case "UEFA-EL":
+        sanitized.league = "UEFA Europa";
+        break;
     };
     
     switch (sanitized.segment) {
@@ -798,6 +804,13 @@ show_other_rows = function(event)
     for(cell of document.getElementsByClassName(parlay_class))
     {
       cell.title = data.map(x => x.side + " " + x.odds).join("\n") + "\nFair: " + percentage_to_odds(fair_parlay_percentage);
+      if(expected_value(fair_parlay_percentage, 137)> 0 && data.length == 2)
+      {
+        
+        cell.title = cell.title + "\n\n" + (expected_value(fair_parlay_percentage, 137)*100).toFixed(1) + "% vs +137 teaser";
+        cell.title = cell.title + "\nFull Kelly: $" + (kelly_percentage(fair_parlay_percentage, 137)*bankroll).toFixed(0);
+        cell.title = cell.title + "\nFractional Kelly: $" + (kelly_percentage(fair_parlay_percentage, 137)*bankroll*kelly_fraction).toFixed(0);
+      }
     }
   }
   
