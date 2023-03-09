@@ -1,6 +1,6 @@
-/* Version: 1.0.12 */
-/* Date: 2/21/23 */
-const VERSION = "1.0.12";
+/* Version: 1.0.13 */
+/* Date: 3/09/23 */
+const VERSION = "1.0.13";
 
 /* Variables */
 {
@@ -433,6 +433,9 @@ show_other_rows = function(event)
         break;
       case "UEFA-EL":
         sanitized.league = "UEFA Europa";
+        break;
+      case "WBC":
+        sanitized.league = "World Baseball Classic";
         break;
     };
     
