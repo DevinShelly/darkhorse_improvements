@@ -1,112 +1,24 @@
-/* Version: 1.0.13 */
-/* Date: 3/09/23 */
-const VERSION = "1.0.13";
+/* Version: 1.0.14 */
+/* Date: 3/27/23 */
+const VERSION = "1.0.14";
 
 /* Variables */
 {
-  bankroll = 35000;
+  bankroll = 20000;
   kelly_fraction = 0.33;
   one_way_overround = 1.07;
+  soft_class = "soft-class";
+  sharp_class = "sharp-class";
+  parlay_class = "parlay-class";
+  parlay_key = "parlay-key";
 }
 
 /* DH seems to disable the console, so a quick workaround */
 {
-  let console_string = "";
-
-  console_log = function(string)
-  {
-    console_string = console_string + string + "\n";
-  }
-  
-  console_clear = function()
-  {
-    console_string = "";
-  }
-  
-  console_display = function()
-  {
-    return console_string;
-  }
-}
-
-/* Showing/hiding and sorting markets */
-
-add_odds_dblclick_handlers = function()
-{
-  for(row of rows())
-  {
-    if(row.ondblclick)
-    {
-      return;
-    }
-    if(!row.classList.contains("hold-row"))
-    {
-      row.ondblclick = hide_other_rows;
-    }
-  }
-}
-
-setInterval(add_odds_dblclick_handlers, 100);
-
-hide_other_rows = function(event)
-{
-  if(!event.currentTarget.querySelector(".total-col"))
-  {
-    return;
-  }
-  
-  show_next_hold_row = false;
-  total_value = event.currentTarget.querySelector(".total-col").textContent;
-  background_color = "#2f3e4e";
-  for(row of all_rows())
-  {
-    /* Row that should be shown */
-    if(row.querySelector(".total-col").textContent == total_value)
-    {
-      row.ondblclick = show_other_rows;
-      show_next_hold_row = true;
-      set_row_color(row, background_color);
-    }
-    /* Row that should be hidden */
-    else if(!show_next_hold_row || !row.classList.contains("hold-row"))
-    {
-      row.hidden = true;
-    }
-    /* Hold row that should be shown for spacing purposes */
-    else
-    {
-      show_next_hold_row = false;
-      set_row_color(row, background_color);
-      if(background_color == "#2f3e4e")
-      {
-        background_color = "#263441";
-      }
-      else
-      {
-        background_color = "#2f3e4e";
-      }
-    }
-  }
-}
-
-set_row_color = function(row, color)
-{
-  row.style.backgroundColor = color;
-  for(child of row.children)
-  {
-    child.style.backgroundColor = color;
-  }
-  
-}
-
-show_other_rows = function(event)
-{
-  for(row of all_rows())
-  {
-    row.hidden = false;
-    row.ondblclick = null;
-    set_row_color(row, null);
-  }
+  // var i = document.createElement('iframe');
+  // i.style.display = 'none';
+  // document.body.appendChild(i);
+  // window.console = i.contentWindow.console;
 }
 
 /* Loading markets from parameterized browse-odds URL */
@@ -187,6 +99,39 @@ show_other_rows = function(event)
   dropdown_options = function()
   {
     return document.getElementsByClassName("mat-option-text");
+  }
+  
+  ///TODO: Implement this if possible
+  scroll_to_bet = function()
+  {
+    rows = document.querySelectorAll("div[row-index]");
+    for(row of rows)
+    {
+      correct_row = true;
+      for(word of params().get("value").split(" "))
+      {
+        if(row.textContent.indexOf(word) == -1)
+        {
+          correct_row = false;
+          break;
+        }
+      }
+      if(correct_row)
+      {
+        row.scrollTo();
+        find_soft_cell(row);
+        return;
+      }
+    }
+  }
+  
+  find_soft_cell = function(info_row)
+  {
+    row = row_for_info_row(info_row);
+    for(cell of cells_for_row(row))
+    {
+      
+    }
   }
   
   select_correct_market = function()
@@ -317,35 +262,6 @@ show_other_rows = function(event)
     
     //If we've somehow reached the end, close the menu and do nothing
     //dropdown_option.click();
-  }
-  
-  scroll_to_bet = function()
-  {
-    /* If the rows haven't loaded yet, wait for them */
-    if(!rows().length)
-    {
-      setTimeout(scroll_to_bet, 100);
-      return;
-    }
-    
-    books = Array.from(document.querySelectorAll("app-sportsbook-icon img")).map(x=>x.getAttribute("alt"));
-    book_index = books.indexOf(params().get("book"));
-    for(row of rows())
-    {
-      if(row.textContent.replaceAll(" ", "").includes(params().get("value").replaceAll(" ", "")))
-      {
-        /* Sometimes alt lines/main lines are in different rows, so scroll to the proper one */
-        book_cell = cells_for_row(row)[book_index];
-        if(book_cell.textContent.trim() == "-")
-        {
-          continue;
-        }
-        make_cell_soft(book_cell);
-        make_row_sharp(row);
-        row.scrollIntoView({behavior: "smooth", block: "center"});
-        return;
-      }
-    }
   }
   
   wait_until_dropdowns_close = function(f)
@@ -497,6 +413,7 @@ show_other_rows = function(event)
         
     }
     
+    sanitized.value = sanitized.value.replace(" Under ", " u").replace(" Over ", " o");
     return sanitized;
   }
   
@@ -612,21 +529,97 @@ show_other_rows = function(event)
   }
 }
 
-/* Devigging methods */
+/* Devigging math methods */
 {
-  cells = function()
+  devigged_power = function(odds_array)
   {
-    return document.querySelectorAll("tr.odds-row-bottom td.book-col, tr.odds-row-top td.book-col,tr.odds-row-middle td.book-col");
+    if(!odds_array.length)
+    {
+      return null;
+    }
+    percentages = odds_array.map(x=> odds_to_percentage(parseFloat(x)));
+    if(percentages.length == 1)
+    {
+      percentages.push(one_way_overround*100 - percentages[0]);
+    }
+    
+    pows = [1.0, 10.0];
+    pow = 5.5;
+    for(i = 0; i<100; i++)
+    {
+      pow = (pows[0] + pows[1])/2;
+      overround = 0;
+      for(percentage of percentages)
+      {
+        overround = overround + Math.pow(percentage/100, pow);
+      }
+      if(overround < 1.0)
+      {
+        pows = [pows[0], pow];
+      }
+      else
+      {
+        pows = [pow, pows[1]];
+      }
+    }
+    return percentages.map(x=> percentage_to_odds(100*Math.pow(x/100, pow)));
   }
   
-  rows = function()
+  odds_to_percentage = function(odds)
   {
-    return document.querySelectorAll("tr.odds-row-top, tr.odds-row-middle, tr.odds-row-bottom");
+    odds = parseFloat(odds);
+    if(odds > 0)
+    {
+      return 100.0*100.0/(100.0 + odds);
+    }
+    else
+    {
+      return 100*odds/(odds-100);
+    }
   }
   
-  all_rows = function()
+  percentage_to_odds = function(percentage)
   {
-    return document.querySelectorAll("tr.odds-row-top, tr.odds-row-middle, tr.odds-row-bottom, tr.hold-row");
+    percentage = parseFloat(percentage);
+    if(percentage > 50)
+    {
+      return -1*Math.round(100*percentage/(100-percentage));
+    }
+    
+    return "+" + Math.round(100*(1-percentage/100)/(percentage/100));
+  }
+  
+  kelly_percentage = function(odds, fair_odds)
+  {
+    odds = parseFloat(odds);
+    fractional_odds = odds < 0 ? -100/odds : odds/100;
+    fair_percentage = odds_to_percentage(parseFloat(fair_odds));
+    return 100 * Math.max(0, fair_percentage/100 - (1-fair_percentage/100)/fractional_odds);
+  }
+  
+  expected_value = function(odds, fair_odds)
+  {
+    odds = parseFloat(odds);
+    fair_odds = parseFloat(fair_odds);
+    fair_percentage = odds_to_percentage(fair_odds);
+    if(odds > 0)
+    {
+      return fair_percentage/100 * odds - 100*(1.0-fair_percentage/100);
+    }
+    
+    return fair_percentage*-100/odds - 100*(1.0-fair_percentage/100);
+  }
+}
+
+/* Devigging display methods */
+{
+  cells = function(book = null)
+  {
+    if(book)
+    {
+      return  document.querySelectorAll(`.ag-cell-value[col-id='${book}']`);
+    }
+    return document.querySelectorAll(".ag-cell-value:not(div[col-id='subject']):not(div[col-id='bestOdds']):not(div[col-id='spread']):not(div[col-id='total'])");
   }
   
   add_devigging_events = function()
@@ -647,7 +640,7 @@ show_other_rows = function(event)
   
   cells_for_row = function(row)
   {
-    return row.querySelectorAll("td.book-col");
+    return row.childNodes;
   }
   
   row_for_cell = function(cell)
@@ -655,13 +648,22 @@ show_other_rows = function(event)
     return cell.parentElement;
   }
   
-  const soft_class = "soft-class";
-  const sharp_class = "sharp-class";
+  info_row_for_row = function(row)
+  {
+    row_index = row.getAttribute("row-index");
+    return document.querySelector(`div[row-index="${row_index}"]`);
+  }
+  
+  row_for_info_row = function(info_row)
+  {
+    row_index = row.getAttribute("row-index");
+    return document.querySelectorAll(`div[row-index="${row_index}"]`)[1];
+  }
   
   toggle_soft_line = function(event)
   {
     cell = event.currentTarget;
-    if(row_for_cell(cell).getElementsByClassName(parlay_class).length || cell.textContent.trim() == "-")
+    if(row_for_cell(cell).getElementsByClassName(parlay_class).length || cell.textContent.trim() == "-" || cell.textContent.indexOf("%") != -1 || cell.textContent.trim() == "")
     {
       return;
     }
@@ -698,19 +700,20 @@ show_other_rows = function(event)
   
   make_cell_sharp = function(cell, soft_cell)
   {
-    soft_odds = parseInt(soft_cell.textContent);
-    devigged_cell_odds = parseInt(devigged_odds_for_cell(cell).power);
-    if(isNaN(devigged_cell_odds))
+    if(cell.textContent.trim() == "-")
     {
       return;
     }
     
-    ev_bet = soft_odds > devigged_cell_odds;
+    soft_odds = parseInt(soft_cell.textContent);
+    devigged_odds = devigged_odds_for_cell(cell);
+    
+    ev_bet = soft_odds > devigged_odds;
     background_color = ev_bet ? "LightGreen" : "LightPink";
     
     cell.classList.add(sharp_class);
-    cell.firstElementChild.firstElementChild.style.color = "Black";
-    cell.firstElementChild.firstElementChild.style.backgroundColor = background_color;
+    cell.firstElementChild.firstElementChild.firstElementChild.style.color = "Black";
+    cell.firstElementChild.firstElementChild.firstElementChild.style.backgroundColor = background_color;
     add_ev_to_title(cell, soft_cell);
   }
   
@@ -721,8 +724,8 @@ show_other_rows = function(event)
       previous_soft_cell.classList.remove(soft_class);
     }
     cell.classList.add(soft_class);
-    cell.firstElementChild.firstElementChild.style.color = "Black";
-    cell.firstElementChild.firstElementChild.style.backgroundColor = "Yellow";
+    cell.firstElementChild.firstElementChild.firstElementChild.style.color = "Black";
+    cell.firstElementChild.firstElementChild.firstElementChild.style.backgroundColor = "Yellow";
   }
   
   make_row_normal = function(row)
@@ -738,121 +741,14 @@ show_other_rows = function(event)
     cell.classList.remove(soft_class);
     cell.classList.remove(sharp_class);
     cell.classList.remove(parlay_class);
-    cell.firstElementChild.firstElementChild.style.backgroundColor = "rgb(29, 39, 49)";
-    cell.firstElementChild.firstElementChild.style.color = "White";
+    cell.firstElementChild.firstElementChild.firstElementChild.style.backgroundColor = "rgb(29, 39, 49)";
+    cell.firstElementChild.firstElementChild.firstElementChild.style.color = "White";
     cell.removeAttribute("title");
   }
   
-  const parlay_class = "parlay-class";
-  const parlay_key = "parlay-key";
-  parlay_data = function()
+  parlay_legs = function()
   {
     return JSON.parse(localStorage.getItem(parlay_key)) || [];
-  }
-  
-  save_parlay_data = function(data)
-  {
-    localStorage.setItem(parlay_key, JSON.stringify(data));
-  }
-  
-  add_to_parlay = function(event)
-  {
-    console_log("added_to_parlay");
-    cell = event.currentTarget;
-    
-    if(cell.textContent.trim() == "-" || cell.classList.contains(sharp_class) || cell.classList.contains(soft_class))
-    {
-      return true;
-    }
-    
-    data = parlay_data();
-    data.push(leg_data_from_cell(cell));
-    save_parlay_data(data);
-    highlight_parlay_cell(cell);
-    update_parlay_cell_titles();
-    
-    
-    return false;
-  }
-  
-  highlight_parlay_cell = function(cell)
-  {
-    cell.oncontextmenu = remove_from_parlay;
-    cell.classList.add(parlay_class);
-    cell.firstElementChild.firstElementChild.style.backgroundColor = "LightBlue";
-    cell.firstElementChild.firstElementChild.style.color = "Black";
-    update_parlay_cell_titles();
-  }
-  
-  leg_data_from_cell = function(cell)
-  {
-    row = row_for_cell(cell);
-    index = Array.from(cells()).indexOf(cell);
-    side = Array.from(row.querySelectorAll(".row-header-col")).map(x => x.textContent.trim()).join(" ");
-    title = document.querySelector("mat-card-title").textContent;
-    market_info = Array.from(dropdowns()).map(x => x.textContent).join();
-    devigged_odds = devigged_odds_for_cell(cell);
-    
-    return ({side: side, odds: devigged_odds.power, title: title, dropdown: market_info, index: index});
-  }
-  
-  update_parlay_cell_titles = function()
-  {
-    data = parlay_data();
-    fair_parlay_percentage = 1;
-    for(leg of data)
-    {
-      fair_parlay_percentage = odds_to_percentage(leg.odds)*fair_parlay_percentage;
-    }
-    for(cell of document.getElementsByClassName(parlay_class))
-    {
-      cell.title = data.map(x => x.side + " " + x.odds).join("\n") + "\nFair: " + percentage_to_odds(fair_parlay_percentage);
-      if(expected_value(fair_parlay_percentage, 137)> 0 && data.length == 2)
-      {
-        
-        cell.title = cell.title + "\n\n" + (expected_value(fair_parlay_percentage, 137)*100).toFixed(1) + "% vs +137 teaser";
-        cell.title = cell.title + "\nFull Kelly: $" + (kelly_percentage(fair_parlay_percentage, 137)*bankroll).toFixed(0);
-        cell.title = cell.title + "\nFractional Kelly: $" + (kelly_percentage(fair_parlay_percentage, 137)*bankroll*kelly_fraction).toFixed(0);
-      }
-    }
-  }
-  
-  remove_from_parlay = function(event)
-  {
-    cell = event.currentTarget;
-    
-    cell.oncontextmenu = add_to_parlay;
-    make_cell_normal(event.currentTarget);
-    data = parlay_data();
-    leg_data = leg_data_from_cell(cell);
-    data = data.filter(x => x.title != leg_data.title || x.dropdown != leg_data.dropdown || x.index != leg_data.index);
-    save_parlay_data(data);
-    update_parlay_cell_titles();
-    
-    return false;
-  }
-  
-  highlight_parlay_members = function()
-  {
-    parlay_checked_class = "parlay-checked";
-    if(!parlay_data().length || document.querySelector(`.${parlay_checked_class}`))
-    {
-      return;
-    }
-    for(cell of cells())
-    {
-      leg_data = leg_data_from_cell(cell);
-      if(parlay_data().filter(x => x.index == leg_data.index && x.title == leg_data.title && x.dropdown == leg_data.dropdown).length)
-      {
-        highlight_parlay_cell(cell);
-      }
-      cell.classList.add(parlay_checked_class);
-    }
-  }
-  
-  clear_parlay = function()
-  {
-    save_parlay_data([]);
   }
   
   add_devigged_odds_to_title = function(event)
@@ -864,163 +760,197 @@ show_other_rows = function(event)
     }
     
     devigged_odds = devigged_odds_for_cell(cell);
-    devigged_percentages = devigged_percentages_for_cell(cell);
+    devigged_percentage = devigged_percentage_string_for_cell(cell);
     if(!cell.title)
     {
-      cell.title = `Fair: ${(devigged_odds.power)} (${(devigged_percentages.power*100).toFixed(1)}%)`;
+      cell.title = `Fair: ${(devigged_odds)} (${devigged_percentage})`;
     }
   }
   
   add_ev_to_title = function(sharp_cell, soft_cell)
   {
     sharp_odds = devigged_odds_for_cell(sharp_cell);
-    sharp_percentages = devigged_percentages_for_cell(sharp_cell);
-    soft_percentages = devigged_percentages_for_cell(soft_cell);
-    ev = (expected_value(sharp_percentages.power, soft_cell.textContent)*100).toFixed(1) +"%";
-    full_kelly = kelly_percentage(sharp_percentages.power, soft_cell.textContent);
-    full_kelly_bet = "$" + (bankroll*full_kelly).toFixed();
-    full_kelly_pct = (full_kelly*100).toFixed(1) + "%";
-    fractional_kelly_bet = "$" + (full_kelly*bankroll*kelly_fraction).toFixed();
-    fractional_kelly_pct = (full_kelly *100*kelly_fraction).toFixed(1) + "%";
+    sharp_percentage = devigged_percentage_string_for_cell(sharp_cell);
+    soft_odds = soft_cell.textContent;
+    ev = expected_value(soft_odds, sharp_odds).toFixed(1) +"%";
+    full_kelly_pct = kelly_percentage(soft_odds, sharp_odds).toFixed(1) + "%";
+    full_kelly_bet = "$" + (bankroll*kelly_percentage(soft_odds, sharp_odds)/100).toFixed();
+    fractional_kelly_bet = "$" + (bankroll*kelly_fraction*kelly_percentage(soft_odds, sharp_odds)/100).toFixed();
+    fractional_kelly_pct = kelly_percentage(soft_odds, sharp_odds).toFixed(1) + "%";
     
-    sharp_cell.title = `Fair: ${sharp_odds.power} (${(100*sharp_percentages.power).toFixed(1)}%)\nEV: ${ev}\nFull Kelly: ${full_kelly_bet} (${full_kelly_pct})\nFractional Kelly: ${fractional_kelly_bet} (${fractional_kelly_pct})`;
+    sharp_cell.title = `Fair: ${sharp_odds} (${sharp_percentage})\nEV: ${ev}\nFull Kelly: ${full_kelly_bet} (${full_kelly_pct})\nFractional Kelly: ${fractional_kelly_bet} (${fractional_kelly_pct})`;
   }
   
-  kelly_percentage = function(win_percentage, odds)
-  {
-    odds = parseFloat(odds);
-    fractional_odds = odds/100;
-    if(odds < 0)
-    {
-      fractional_odds = -100/odds;
-    }
-    win_percentage = parseFloat(win_percentage);
-    return Math.max(0, win_percentage - (1-win_percentage)/fractional_odds);
-  }
-  
-  expected_value = function(win_percentage, odds)
-  {
-    odds = parseFloat(odds);
-    win_percentage = parseFloat(win_percentage);
-    if(odds > 0)
-    {
-      return (win_percentage * odds - 100*(1.0-win_percentage))/100;
-    }
-    
-    return (100*win_percentage + odds * (1.0-win_percentage))/(-odds);
-  }
-  
-  devigged_percentages_for_cell = function(cell)
+  devigged_percentage_for_cell = function(cell)
   {
     devigged_odds = devigged_odds_for_cell(cell);
-    return {power: odds_to_percentage(devigged_odds.power), standard: odds_to_percentage(devigged_odds.standard)};
+    return odds_to_percentage(devigged_odds);
+  }
+  
+  devigged_percentage_string_for_cell = function(cell)
+  {
+    return devigged_percentage_for_cell(cell).toFixed(1) + "%";
+  }
+  
+  other_cells_for_cell = function(cell)
+  {
+    other_cells = [];
+    book_cells = cells(cell.getAttribute("col-id"));
+    for(book_cell of book_cells)
+    {
+      //if a cell has odds, add it to the array
+      if(parseInt(book_cell.textContent) && book_cell.textContent.indexOf("%") < 0)
+      {
+        other_cells.push(book_cell);
+      }
+      //if the cell does not have odds but the cell is in the current array, return it
+      else if(other_cells.indexOf(cell) != -1)
+      {
+        return other_cells;
+      }
+      //the cell does not have odds but the cell isn't in the current array, start over
+      else
+      {
+        other_cells = [];
+      }
+    }
+    return [cell];
   }
   
   devigged_odds_for_cell = function(cell)
   {
-    odds = [cell.textContent];
+    other_cells = other_cells_for_cell(cell);
+    other_odds = other_cells.map(x=>x.textContent);
+    return devigged_power(other_odds)[other_cells.indexOf(cell)];
+  }
+}
+
+/* Parlay functions */
+{
+  save_parlay_legs = function(legs)
+  {
+    localStorage.setItem(parlay_key, JSON.stringify(legs));
+  }
+  
+  add_to_parlay = function(event)
+  {
+    cell = event.currentTarget;
+    
+    if(cell.textContent.trim() == "-" || cell.classList.contains(sharp_class) || cell.classList.contains(soft_class))
+    {
+      return true;
+    }
+    
+    legs = parlay_legs();
+    legs.push(leg_from_cell(cell));
+    save_parlay_legs(legs);
+    make_cell_parlay(cell);
+    return false;
+  }
+  
+  make_cell_parlay = function(cell)
+  {
+    cell.oncontextmenu = remove_from_parlay;
+    cell.classList.add(parlay_class);
+    cell.firstElementChild.firstElementChild.firstElementChild.style.backgroundColor = "LightBlue";
+    cell.firstElementChild.firstElementChild.firstElementChild.style.color = "Black";
+    update_parlay_cell_titles();
+  }
+  
+  market_dropdowns = function()
+  {
+    return Array.from(document.querySelectorAll(".mat-select")).map(x=>x.textContent.trim());
+  }
+  
+  leg_from_cell = function(cell)
+  {
     row = row_for_cell(cell);
-    cell_index = Array.from(row.childNodes).indexOf(cell);
-    if(row.classList.contains("odds-row-top") || row.classList.contains("odds-row-middle"))
-    {
-      odds.push(row.nextElementSibling.childNodes[cell_index].textContent);
-      if(row.nextElementSibling.classList.contains("odds-row-middle"))
-      {
-        odds.push(row.nextElementSibling.nextElementSibling.childNodes[cell_index].textContent);
-      }
-    }
-    
-    if(row.classList.contains("odds-row-bottom") || row.classList.contains("odds-row-middle"))
-    {
-      odds.push(row.previousElementSibling.childNodes[cell_index].textContent);
-      if(row.previousElementSibling.classList.contains("odds-row-middle"))
-      {
-        odds.push(row.previousElementSibling.previousElementSibling.childNodes[cell_index].textContent);
-      }
-    }
-    
-    return {standard: devigged_standard(odds), power: devigged_power(odds)};
+    info_row = info_row_for_row(row);
+    bet_info = Array.from(info_row.querySelectorAll("div.ag-cell:not(div[col-id='bestOdds']"));
+    bet_strings = bet_info.map(x=>x.textContent.trim()).join(" ");
+    devigged_odds = devigged_odds_for_cell(cell);
+    devigged_percentage = devigged_percentage_for_cell(cell);
+    book = cell.getAttribute("col-id");
+    return ({market: market_dropdowns(), bet: bet_strings, odds: devigged_odds, percentage: devigged_percentage, book: book});
   }
   
-  parse_odds_to_percentages = function(odds)
+  leg_equality = function(leg1, leg2)
   {
-    percentages = odds.map(o => isNaN(parseFloat(o)) ? 0 : odds_to_percentage(o));
-    total_overround = percentages.reduce((overround, percentage) => overround + percentage);
-    /* Can't devig an empty market */
-    if(total_overround == 0)
-    {
-      return null;
-    }
-    
-    /* Assuming missing odds is a one-way market, add the default overround in */
-    percentages = percentages.map(percentage => percentage == 0 ? one_way_overround-total_overround : percentage);
-    
-    return percentages;
+    return leg1.market.join() == leg2.market.join() && leg1.bet == leg2.bet && leg1.book == leg2.book;
   }
   
-  devigged_standard = function(odds)
+  update_parlay_cell_titles = function()
   {
-    percentages = parse_odds_to_percentages(odds);
-    if(!percentages)
+    fair_percentage = 100;
+    title_string = "";
+    for(leg of parlay_legs())
     {
-      return null;
+      market = leg.market[leg.market.length-1];
+      if(leg.market.length > 2)
+      {
+        market = market + ` (${leg.market.slice(0, 2).join("/")})`;
+      }
+      
+      title_string = title_string + `${market} - ${leg.bet} : ${leg.odds} (${parseFloat(leg.percentage).toFixed(1)}%)\n`;
+      fair_percentage = fair_percentage * parseFloat(leg.percentage)/100;
     }
     
-    overround = percentages.reduce((accumulated_overround, percentage) => accumulated_overround = accumulated_overround + percentage);
-    return percentage_to_odds(percentages[0]/overround);
-  }
-  
-  devigged_power = function(odds)
-  {
-    percentages = parse_odds_to_percentages(odds);
-    if(!percentages)
-    {
-      return null;
-    }
+    fair_odds = percentage_to_odds(fair_percentage);
+    title_string = title_string + `----------------------------\nFair odds: ${fair_odds} (${fair_percentage.toFixed(1)}%)`;
     
-    pows = [1.0, 10.0];
-    for(i = 0; i<100; i++)
+    for(cell of document.getElementsByClassName(parlay_class))
     {
-      pow = (pows[0] + pows[1])/2;
-      overround = 0;
-      for(percentage of percentages)
-      {
-        overround = overround + Math.pow(percentage, pow);
-      }
-      if(overround < 1.0)
-      {
-        pows = [pows[0], pow];
-      }
-      else
-      {
-        pows = [pow, pows[1]];
-      }
-    }
-    return percentage_to_odds(Math.pow(percentages[0], (pows[0] + pows[1])/2.0));
-  }
-  
-  odds_to_percentage = function(odds)
-  {
-    odds = parseFloat(odds);
-    if(odds > 0)
-    {
-      return 100.0/(100.0 + odds);
-    }
-    else
-    {
-      return odds/(odds-100);
+      cell.title = title_string;
     }
   }
   
-  percentage_to_odds = function(percentage)
+  remove_from_parlay = function(event)
   {
-    percentage = parseFloat(percentage);
-    if(percentage > 0.5)
+    cell = event.currentTarget;
+    
+    cell.oncontextmenu = add_to_parlay;
+    make_cell_normal(event.currentTarget);
+    legs = parlay_legs();
+    leg = leg_from_cell(cell);
+    legs = legs.filter(x => !leg_equality(leg, x));
+    save_parlay_legs(legs);
+    update_parlay_cell_titles();
+    
+    return false;
+  }
+  
+  make_cells_parlay = function()
+  {
+    if(document.getElementsByClassName(parlay_class).length)
     {
-      return -1*Math.round((100*percentage)/(1-percentage));
+      return;
     }
     
-    return "+" + Math.round(100*(1-percentage)/percentage);
+    for(leg of parlay_legs())
+    {
+      book_cells = document.querySelectorAll(`div.ag-cell[col-id="${leg.book}"`);
+      if(market_dropdowns().join() != leg.market.join())
+      {
+        continue;
+      }
+      
+      for(cell of book_cells)
+      {
+        row = row_for_cell(cell);
+        info_row = info_row_for_row(row);
+        
+        if(info_row.textContent.indexOf(leg.bet) != -1)
+        {
+          make_cell_parlay(cell);
+          break;
+        }
+      }
+    }
+  }
+  
+  clear_parlay = function()
+  {
+    save_parlay_legs([]);
   }
 }
 
@@ -1031,7 +961,7 @@ show_other_rows = function(event)
   devigging_events_id = setInterval(add_devigging_events, 100);
   dim_rows_id = setInterval(dim_rows, 100);
   delete_old_data = setInterval(delete_old_data, 30000);
-  highlight_parlay_cell_id = setInterval(highlight_parlay_members, 100);
+  make_cells_parlay_id = setInterval(make_cells_parlay, 100);
   load_league();
   clear_parlay();
 }
