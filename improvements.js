@@ -1,6 +1,6 @@
-/* Version: 1.0.14 */
-/* Date: 3/27/23 */
-const VERSION = "1.0.14";
+/* Version: 1.0.15 */
+/* Date: 3/28/23 */
+const VERSION = "1.0.15";
 
 /* Variables */
 {
@@ -105,12 +105,12 @@ const VERSION = "1.0.14";
   scroll_to_bet = function()
   {
     rows = document.querySelectorAll("div[row-index]");
-    for(row of rows)
+    for(info_row of rows)
     {
       correct_row = true;
       for(word of params().get("value").split(" "))
       {
-        if(row.textContent.indexOf(word) == -1)
+        if(info_row.textContent.indexOf(word) == -1)
         {
           correct_row = false;
           break;
@@ -118,11 +118,28 @@ const VERSION = "1.0.14";
       }
       if(correct_row)
       {
-        row.scrollTo();
-        find_soft_cell(row);
+        info_row.scrollIntoView(true);
+        books = Array.from(document.querySelectorAll(".ag-header-row img")).map(x=>x.getAttribute("alt"))
+        book_index = books.indexOf(params().get("book"));
+        row = row_for_info_row(info_row);
+        cell = cells_for_row(row)[book_index];
+        make_cell_soft(cell);
+        make_row_sharp(row);
         return;
       }
     }
+    gridElement = document.querySelector(".ag-body-viewport");
+    if(gridElement.scrollTop + gridElement.offsetHeight + 1 < gridElement.scrollHeight)
+    {
+      gridElement.scrollBy(0, gridElement.offsetHeight);
+      setTimeout(scroll_to_bet, 200);
+    }
+    else
+    {
+      gridElement.scrollTo(0, 0);
+      setTimeout(scroll_to_bet, 200);
+    }
+    
   }
   
   find_soft_cell = function(info_row)
@@ -656,7 +673,7 @@ const VERSION = "1.0.14";
   
   row_for_info_row = function(info_row)
   {
-    row_index = row.getAttribute("row-index");
+    row_index = info_row.getAttribute("row-index");
     return document.querySelectorAll(`div[row-index="${row_index}"]`)[1];
   }
   
@@ -836,7 +853,7 @@ const VERSION = "1.0.14";
   {
     cell = event.currentTarget;
     
-    if(cell.textContent.trim() == "-" || cell.classList.contains(sharp_class) || cell.classList.contains(soft_class))
+    if(cell.textContent.trim() == "-" || cell.textContent.trim() == "" || cell.textContent.indexOf("%") != -1 || cell.classList.contains(sharp_class) || cell.classList.contains(soft_class))
     {
       return true;
     }
