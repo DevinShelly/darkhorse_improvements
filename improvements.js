@@ -1,6 +1,6 @@
-/* Version: 1.0.15 */
+/* Version: 1.0.16 */
 /* Date: 3/28/23 */
-const VERSION = "1.0.15";
+const VERSION = "1.0.16";
 
 /* Variables */
 {
@@ -938,11 +938,6 @@ const VERSION = "1.0.15";
   
   make_cells_parlay = function()
   {
-    if(document.getElementsByClassName(parlay_class).length)
-    {
-      return;
-    }
-    
     for(leg of parlay_legs())
     {
       book_cells = document.querySelectorAll(`div.ag-cell[col-id="${leg.book}"`);
