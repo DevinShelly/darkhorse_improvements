@@ -1,6 +1,6 @@
-/* Version: 1.0.16 */
-/* Date: 3/28/23 */
-const VERSION = "1.0.16";
+/* Version: 1.0.17 */
+/* Date: 3/29/23 */
+const VERSION = "1.0.17";
 
 /* Variables */
 {
@@ -104,6 +104,8 @@ const VERSION = "1.0.16";
   ///TODO: Implement this if possible
   scroll_to_bet = function()
   {
+    ///For now, simply exit this function immediately since it's buggy
+    return;
     rows = document.querySelectorAll("div[row-index]");
     for(info_row of rows)
     {
