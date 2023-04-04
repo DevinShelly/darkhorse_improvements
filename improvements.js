@@ -1,9 +1,6 @@
-/* Version: 1.0.17 */
-/* Date: 3/29/23 */
-const VERSION = "1.0.17";
-
 /* Variables */
 {
+  VERSION = "1.0.18";
   bankroll = 20000;
   kelly_fraction = 0.33;
   one_way_overround = 1.07;
@@ -104,8 +101,6 @@ const VERSION = "1.0.17";
   ///TODO: Implement this if possible
   scroll_to_bet = function()
   {
-    ///For now, simply exit this function immediately since it's buggy
-    return;
     rows = document.querySelectorAll("div[row-index]");
     for(info_row of rows)
     {
@@ -155,8 +150,8 @@ const VERSION = "1.0.17";
   
   select_correct_market = function()
   {
-    //Wait for event to finish loading and try again
-    if(!dropdowns().length)
+    //Page hasn't loaded yet
+    if(dropdowns().length == 0)
     {
       setTimeout(select_correct_market, 100);
       return;
@@ -188,7 +183,7 @@ const VERSION = "1.0.17";
     for(dropdown_option of dropdown_options())
     {
       /*Check for exact match or where Total Score is equivalent to Total Goals or Total Runs */
-      if(dropdown_option.textContent.trim() == params().get("market") || dropdown_option.textContent.trim().replace("Total Goals", "Total Score") == params().get("market") || dropdown_option.textContent.trim().replace("Total Runs", "Total Score") == params().get("market"))
+      if(dropdown_option.textContent.trim() == params().get("market") || dropdown_option.textContent.trim().replace("Total Goals", "Total Score").replace("Total Runs", "Total Score") == params().get("market") || dropdown_option.textContent.trim().replace("Total Runs", "Total Score") == params().get("market"))
       {
         dropdown_option.click();
         wait_until_dropdowns_close(scroll_to_bet);
@@ -203,13 +198,6 @@ const VERSION = "1.0.17";
   
   select_correct_category = function()
   {
-    //if focus is unavailable, try again later
-    if(!document.querySelector("app-browse-odds-table"))
-    {
-      setTimeout(select_correct_category, 100);
-      return;
-    }
-    
     //Open the market categories if not already opened
     if(!dropdown_options().length)
     {
@@ -231,6 +219,8 @@ const VERSION = "1.0.17";
   
   select_correct_segment = function()
   {
+    console.log("selecting correct segment");
+    
     /* Select correct market if no segment available */
     if(!params().get("segment"))
     {
@@ -401,6 +391,14 @@ const VERSION = "1.0.17";
         delete sanitized.segment;
         sanitized.category = "Set Lines";
         break;
+      case "1st Inning":
+        sanitized.category = "Innings";
+        sanitized.segment = "1st";
+        break;
+      case "Innings 1-5":
+        sanitized.category = "Innings";
+        sanitized.segment = "1-5";
+        break;
     };
     
     switch(sanitized.market)
@@ -432,7 +430,7 @@ const VERSION = "1.0.17";
         
     }
     
-    sanitized.value = sanitized.value.replace(" Under ", " u").replace(" Over ", " o");
+    sanitized.value = sanitized.value.replace("Under ", " u").replace("Over ", " o");
     return sanitized;
   }
   
@@ -636,9 +634,9 @@ const VERSION = "1.0.17";
   {
     if(book)
     {
-      return  document.querySelectorAll(`.ag-cell-value[col-id='${book}']`);
+      return Array.from(document.querySelectorAll(`.ag-cell-value[col-id='${book}']`));
     }
-    return document.querySelectorAll(".ag-cell-value:not(div[col-id='subject']):not(div[col-id='bestOdds']):not(div[col-id='spread']):not(div[col-id='total'])");
+    return Array.from(document.querySelectorAll(".ag-cell-value:not(div[col-id='subject']):not(div[col-id='bestOdds']):not(div[col-id='spread']):not(div[col-id='total'])"));
   }
   
   add_devigging_events = function()
@@ -839,7 +837,16 @@ const VERSION = "1.0.17";
   devigged_odds_for_cell = function(cell)
   {
     other_cells = other_cells_for_cell(cell);
-    other_odds = other_cells.map(x=>x.textContent);
+    //First basket should have 10 starters all mutually exclusive. If not, revert to one-way line
+    if(dropdowns()[1].textContent.indexOf("First Basket") != -1)
+    {
+      other_cells = cells(cell.getAttribute("col-id")).filter(x=>x.textContent.trim() != "-");
+      if(other_cells.length != 10)
+      {
+        other_cells = [cell];
+      }
+    }
+    other_odds = other_cells.map(x=>x.textContent.trim());
     return devigged_power(other_odds)[other_cells.indexOf(cell)];
   }
 }
