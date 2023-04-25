@@ -1,6 +1,6 @@
 /* Variables */
 {
-  VERSION = "1.0.18";
+  VERSION = "1.0.19";
   bankroll = 20000;
   kelly_fraction = 0.33;
   one_way_overround = 1.07;
@@ -12,10 +12,10 @@
 
 /* DH seems to disable the console, so a quick workaround */
 {
-  // var i = document.createElement('iframe');
-  // i.style.display = 'none';
-  // document.body.appendChild(i);
-  // window.console = i.contentWindow.console;
+  var i = document.createElement('iframe');
+  i.style.display = 'none';
+  document.body.appendChild(i);
+  window.console = i.contentWindow.console;
 }
 
 /* Loading markets from parameterized browse-odds URL */
@@ -346,6 +346,8 @@
   sanitized_params = function(parameters)
   {
     sanitized = JSON.parse(JSON.stringify(parameters));
+    console.log("Presanitized");
+    console.log(sanitized);
     switch (sanitized.league) {
       case "EPL":
         sanitized.league = "Premier League";
@@ -431,6 +433,8 @@
     }
     
     sanitized.value = sanitized.value.replace("Under ", " u").replace("Over ", " o");
+    console.log("Sanitized");
+    console.log(sanitized);
     return sanitized;
   }
   
@@ -793,7 +797,7 @@
     full_kelly_pct = kelly_percentage(soft_odds, sharp_odds).toFixed(1) + "%";
     full_kelly_bet = "$" + (bankroll*kelly_percentage(soft_odds, sharp_odds)/100).toFixed();
     fractional_kelly_bet = "$" + (bankroll*kelly_fraction*kelly_percentage(soft_odds, sharp_odds)/100).toFixed();
-    fractional_kelly_pct = kelly_percentage(soft_odds, sharp_odds).toFixed(1) + "%";
+    fractional_kelly_pct = (kelly_fraction * kelly_percentage(soft_odds, sharp_odds)).toFixed(1) + "%";
     
     sharp_cell.title = `Fair: ${sharp_odds} (${sharp_percentage})\nEV: ${ev}\nFull Kelly: ${full_kelly_bet} (${full_kelly_pct})\nFractional Kelly: ${fractional_kelly_bet} (${fractional_kelly_pct})`;
   }
