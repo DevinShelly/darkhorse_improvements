@@ -1,8 +1,8 @@
 /* Variables */
 {
-  VERSION = "1.0.19";
-  bankroll = 20000;
-  kelly_fraction = 0.33;
+  VERSION = "1.0.20";
+  bankroll = 30000;
+  kelly_fraction = 0.5;
   one_way_overround = 1.07;
   soft_class = "soft-class";
   sharp_class = "sharp-class";
@@ -107,7 +107,8 @@
       correct_row = true;
       for(word of params().get("value").split(" "))
       {
-        if(info_row.textContent.indexOf(word) == -1)
+        first_initial = word[0] + ".";
+        if(info_row.textContent.indexOf(word) == -1 && info_row.textContent.indexOf(first_initial) == -1)
         {
           correct_row = false;
           break;
