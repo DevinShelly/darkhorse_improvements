@@ -1,6 +1,6 @@
 /* Variables */
 {
-  VERSION = "1.0.20";
+  VERSION = "1.0.3";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -441,7 +441,8 @@
   
   market_dblclicked = function(event)
   {
-    event_col_texts = textNodes(event.currentTarget.parentElement.getElementsByClassName("event-col")[0].childNodes);
+    event_col_texts = textNodes(event.currentTarget.parentElement.getElementsByClassName("event-col")[0]);
+    console.log(event.currentTarget);
     league = event_col_texts[0].textContent.trim();
     team1 = event_col_texts[1].textContent.trim();
     team2 = event_col_texts[2].textContent.trim();
@@ -537,15 +538,18 @@
     save_dimmed_keys(dimmed_keys);
   }
   
-  textNodes = function(nodes)
+  textNodes = function(node)
   {
+    console.log(node);
     let output = [];
-    for(node of Array.from(nodes))
+    if(node.nodeType == 3)
     {
-      if(node.nodeType == 3)
-      {
-        output.push(node);
-      }
+      output.push(node);
+      return output;
+    }
+    for(child of node.childNodes)
+    {
+      output.push(...textNodes(child));
     }
     return output;
   }
