@@ -1,6 +1,6 @@
-/* Variables */
+/* Variables and debugging */
 {
-  VERSION = "1.0.3";
+  VERSION = "1.0.4";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -8,6 +8,16 @@
   sharp_class = "sharp-class";
   parlay_class = "parlay-class";
   parlay_key = "parlay-key";
+  
+  set_title = function()
+  {
+    title = "DarkHorse Odds v" + VERSION;
+    if(document.title != title)
+    {
+      document.title = title;
+    }
+  }
+  setInterval(set_title, 1000);
 }
 
 /* DH seems to disable the console, so a quick workaround */
