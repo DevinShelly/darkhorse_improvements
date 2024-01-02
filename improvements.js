@@ -1,6 +1,18 @@
+// ==UserScript==
+// @name         devin's dh improvements
+// @namespace    http://tampermonkey.net/
+// @version      1.0.5
+// @description  dh improvements
+// @author       Devin Shelly
+// @match        https://darkhorseodds.com/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=darkhorseodds.com
+// @grant        none
+// ==/UserScript==
+​
+​
 /* Variables and debugging */
 {
-  VERSION = "1.0.4";
+  VERSION = "1.0.5";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -8,7 +20,7 @@
   sharp_class = "sharp-class";
   parlay_class = "parlay-class";
   parlay_key = "parlay-key";
-  
+​
   set_title = function()
   {
     title = "DarkHorse Odds v" + VERSION;
@@ -19,22 +31,22 @@
   }
   setInterval(set_title, 1000);
 }
-
-/* DH seems to disable the console, so a quick workaround */
-{
-  var i = document.createElement('iframe');
-  i.style.display = 'none';
-  document.body.appendChild(i);
-  window.console = i.contentWindow.console;
-}
-
+​
+// /* DH seems to disable the console, so a quick workaround */
+// {
+//   var i = document.createElement('iframe');
+//   i.style.display = 'none';
+//   document.body.appendChild(i);
+//   window.console = i.contentWindow.console;
+// }
+​
 /* Loading markets from parameterized browse-odds URL */
 {
   params = function()
   {
     return new URLSearchParams(window.location.search);
   }
-  
+​
   load_league = function()
   {
     league_list = document.querySelector("app-browse-odd-league-list");
@@ -43,12 +55,12 @@
       setTimeout(load_league, 100);
       return;
     }
-    
+​
     if(!params().get("league"))
     {
       return;
     }
-    
+​
     leagues = league_list.querySelectorAll("mat-tree-node .tree-node-name");
     if(!leagues.length)
     {
@@ -66,7 +78,7 @@
       }
     }
   }
-  
+​
   load_event = function()
   {
     events = document.querySelectorAll("app-browse-odds-event-summary-card");
@@ -75,10 +87,10 @@
       setTimeout(load_event, 100);
       return;
     }
-    
+​
     team1 = params().get("team1").replaceAll(" ", "");
     team2 = params().get("team2").replaceAll(" ", "");
-    
+​
     for(event of events)
     {
       event_text = event.textContent.replaceAll(" ", "");
@@ -93,21 +105,21 @@
             return;
           }
         }
-        
+​
       }
     }
   }
-  
+​
   dropdowns = function()
   {
     return document.querySelectorAll("mat-select");
   }
-  
+​
   dropdown_options = function()
   {
-    return document.getElementsByClassName("mat-option-text");
+    return document.querySelectorAll("mat-option");
   }
-  
+​
   ///TODO: Implement this if possible
   scroll_to_bet = function()
   {
@@ -147,18 +159,18 @@
       gridElement.scrollTo(0, 0);
       setTimeout(scroll_to_bet, 200);
     }
-    
+​
   }
-  
+​
   find_soft_cell = function(info_row)
   {
     row = row_for_info_row(info_row);
     for(cell of cells_for_row(row))
     {
-      
+​
     }
   }
-  
+​
   select_correct_market = function()
   {
     //Page hasn't loaded yet
@@ -167,21 +179,21 @@
       setTimeout(select_correct_market, 100);
       return;
     }
-    
+​
     /* Select the correct category and then return if not already selected */
     if(params().get("category") && dropdowns()[0].textContent.trim() != params().get("category"))
     {
       select_correct_category();
       return;
     }
-    
+​
     /* If the market is already selected, scroll to the correct bet */
     if(dropdowns()[dropdowns().length-1].textContent.trim() == params().get("market"))
     {
       scroll_to_bet();
       return;
     }
-    
+​
     /* Open the market dropdowns if not open */
     if(!dropdown_options().length)
     {
@@ -189,7 +201,7 @@
       wait_until_dropdowns_open(select_correct_market);
       return;
     }
-    
+​
     /* Select the correct market if available */
     for(dropdown_option of dropdown_options())
     {
@@ -201,12 +213,12 @@
         return;
       }
     }
-    
+​
     //if there is no correct market, close the dropdown and select the next category
     document.getElementsByClassName("mat-selected")[0].click();
     wait_until_dropdowns_close(select_next_category);
   }
-  
+​
   select_correct_category = function()
   {
     //Open the market categories if not already opened
@@ -216,7 +228,7 @@
       wait_until_dropdowns_open(select_correct_category);
       return;
     }
-    
+​
     for(dropdown_option of dropdown_options())
     {
       if(dropdown_option.textContent.trim() == params().get("category"))
@@ -227,18 +239,18 @@
       }
     }
   }
-  
+​
   select_correct_segment = function()
   {
     console.log("selecting correct segment");
-    
+​
     /* Select correct market if no segment available */
     if(!params().get("segment"))
     {
       select_correct_market();
       return;
     }
-    
+​
     //open the segment dropdown if not open
     if(!dropdown_options().length)
     {
@@ -246,7 +258,7 @@
       wait_until_dropdowns_open(select_correct_segment);
       return;
     }
-    
+​
     //open the correct segment, then select the market
     for(dropdown_option of dropdown_options())
     {
@@ -258,7 +270,7 @@
       }
     }
   }
-  
+​
   select_next_category = function()
   {
     //open the categories if closed and try again
@@ -268,7 +280,7 @@
       wait_until_dropdowns_open(select_next_category);
       return;
     }
-    
+​
     //click the next category and then select correct market
     for(dropdown_option of dropdown_options())
     {
@@ -279,11 +291,11 @@
         return;
       }
     }
-    
+​
     //If we've somehow reached the end, close the menu and do nothing
     //dropdown_option.click();
   }
-  
+​
   wait_until_dropdowns_close = function(f)
   {
     if(dropdown_options().length)
@@ -291,10 +303,10 @@
       setTimeout(wait_until_dropdowns_close, 100, f);
       return;
     }
-    
+​
     f();
   }
-  
+​
   wait_until_dropdowns_open = function(f)
   {
     if(!dropdown_options().length)
@@ -302,11 +314,11 @@
       setTimeout(wait_until_dropdowns_open, 100, f);
       return;
     }
-    
+​
     f();
   }
 }
-
+​
 /* Generating parameterized browse-odds URLs from bet finders and autorefreshing bets */
 {
   check_for_autorefresh  = function()
@@ -318,7 +330,7 @@
       setTimeout(refresh_odds, 100);
     }
   }
-  
+​
   refresh_odds = function()
   {
     buttons = Array.from(document.getElementsByClassName("mat-button-wrapper"));
@@ -330,7 +342,7 @@
       }
     }
   }
-  
+​
   add_bet_finder_events = function()
   {
     markets = document.querySelectorAll(".primary-market-col, .hedge-market-col");
@@ -341,7 +353,7 @@
         market.ondblclick = market_dblclicked;
       }
     }
-    
+​
     events = document.querySelectorAll("td.event-col");
     for(event of events)
     {
@@ -350,9 +362,9 @@
         event.ondblclick = event_dblclicked;
       }
     }
-    
+​
   }
-  
+​
   /* Fix any discrepancies between bet finder and browse odds manually */
   sanitized_params = function(parameters)
   {
@@ -376,7 +388,7 @@
         sanitized.league = "World Baseball Classic";
         break;
     };
-    
+​
     switch (sanitized.segment) {
       case "1st Quarter":
       case "2nd Quarter":
@@ -413,7 +425,7 @@
         sanitized.segment = "1-5";
         break;
     };
-    
+​
     switch(sanitized.market)
     {
       case "Total":
@@ -440,15 +452,15 @@
       case "Alt Total Match Games":
       case "Total Match Games":
         sanitized.market = sanitized.market.replace("Match Games", "Games");
-        
+​
     }
-    
+​
     sanitized.value = sanitized.value.replace("Under ", " u").replace("Over ", " o");
     console.log("Sanitized");
     console.log(sanitized);
     return sanitized;
   }
-  
+​
   market_dblclicked = function(event)
   {
     event_col_texts = textNodes(event.currentTarget.parentElement.getElementsByClassName("event-col")[0]);
@@ -456,7 +468,7 @@
     league = event_col_texts[0].textContent.trim();
     team1 = event_col_texts[1].textContent.trim();
     team2 = event_col_texts[2].textContent.trim();
-    
+​
     market_col = event.currentTarget;
     market = market_col.querySelector("app-market-chip").textContent.trim()
     segment = market_col.querySelector("app-segment-chip") ? market_col.querySelector("app-segment-chip").textContent.trim() : null;
@@ -464,13 +476,13 @@
     book_col = market_col.classList.contains("primary-market-col") ? market_col.previousElementSibling : market_col.nextElementSibling;
     book = book_col.querySelector("img").getAttribute("alt");
     parameters = {league: league, team1: team1, team2: team2, market: market, segment: segment, value: value, book: book};
-    
+​
     if(!segment)
     {
       delete parameters.segment;
     }
     sanitized_parameters = sanitized_params(parameters);
-    
+​
     browse_odds_url = "https://darkhorseodds.com/browse-odds?";
     for(param in sanitized_parameters)
     {
@@ -478,31 +490,31 @@
     }
     window.open(browse_odds_url);
   }
-  
+​
   const dimmed_class = "dimmed-class";
   const dimmed_storage_key = "dimmed-keys";
   load_dimmed_keys = function()
   {
     return JSON.parse(localStorage.getItem(dimmed_storage_key)) || {};
   }
-  
+​
   save_dimmed_keys = function(dimmed_keys)
   {
     localStorage.setItem(dimmed_storage_key, JSON.stringify(dimmed_keys));
   }
-  
+​
   dimmed_key_from_row = function(row)
   {
     market_col = row.querySelector(".primary-market-col");
     event_col = row.querySelector(".event-col");
     return event_col.textContent + market_col.textContent;
   }
-  
+​
   event_dblclicked = function(event)
   {
     dimmed_keys = load_dimmed_keys();
     row = event.currentTarget.parentElement;
-    
+​
     if(event.currentTarget.classList.contains(dimmed_class))
     {
       delete dimmed_keys[dimmed_key_from_row(row)];
@@ -518,7 +530,7 @@
       event.currentTarget.parentElement.style.opacity = 0.1;
     }
   }
-  
+​
   dim_rows = function(event)
   {
     dimmed_keys = load_dimmed_keys();
@@ -534,7 +546,7 @@
       }
     }
   }
-  
+​
   delete_old_data = function()
   {
     dimmed_keys = load_dimmed_keys();
@@ -547,7 +559,7 @@
     }
     save_dimmed_keys(dimmed_keys);
   }
-  
+​
   textNodes = function(node)
   {
     console.log(node);
@@ -564,7 +576,7 @@
     return output;
   }
 }
-
+​
 /* Devigging math methods */
 {
   devigged_power = function(odds_array)
@@ -578,7 +590,7 @@
     {
       percentages.push(one_way_overround*100 - percentages[0]);
     }
-    
+​
     pows = [1.0, 10.0];
     pow = 5.5;
     for(i = 0; i<100; i++)
@@ -600,7 +612,7 @@
     }
     return percentages.map(x=> percentage_to_odds(100*Math.pow(x/100, pow)));
   }
-  
+​
   odds_to_percentage = function(odds)
   {
     odds = parseFloat(odds);
@@ -613,7 +625,7 @@
       return 100*odds/(odds-100);
     }
   }
-  
+​
   percentage_to_odds = function(percentage)
   {
     percentage = parseFloat(percentage);
@@ -621,10 +633,10 @@
     {
       return -1*Math.round(100*percentage/(100-percentage));
     }
-    
+​
     return "+" + Math.round(100*(1-percentage/100)/(percentage/100));
   }
-  
+​
   kelly_percentage = function(odds, fair_odds)
   {
     odds = parseFloat(odds);
@@ -632,7 +644,7 @@
     fair_percentage = odds_to_percentage(parseFloat(fair_odds));
     return 100 * Math.max(0, fair_percentage/100 - (1-fair_percentage/100)/fractional_odds);
   }
-  
+​
   expected_value = function(odds, fair_odds)
   {
     odds = parseFloat(odds);
@@ -642,11 +654,11 @@
     {
       return fair_percentage/100 * odds - 100*(1.0-fair_percentage/100);
     }
-    
+​
     return fair_percentage*-100/odds - 100*(1.0-fair_percentage/100);
   }
 }
-
+​
 /* Devigging display methods */
 {
   cells = function(book = null)
@@ -657,7 +669,7 @@
     }
     return Array.from(document.querySelectorAll(".ag-cell-value:not(div[col-id='subject']):not(div[col-id='bestOdds']):not(div[col-id='spread']):not(div[col-id='total'])"));
   }
-  
+​
   add_devigging_events = function()
   {
     for (cell of cells())
@@ -666,36 +678,36 @@
       {
         continue;
       }
-      
+​
       cell.onmouseover = add_devigged_odds_to_title;
       cell.oncontextmenu = add_to_parlay;
       cell.onclick = toggle_soft_line;
       cell.ondblclick = function(event){event.stopPropagation()};
     }
   }
-  
+​
   cells_for_row = function(row)
   {
     return row.childNodes;
   }
-  
+​
   row_for_cell = function(cell)
   {
     return cell.parentElement;
   }
-  
+​
   info_row_for_row = function(row)
   {
     row_index = row.getAttribute("row-index");
     return document.querySelector(`div[row-index="${row_index}"]`);
   }
-  
+​
   row_for_info_row = function(info_row)
   {
     row_index = info_row.getAttribute("row-index");
     return document.querySelectorAll(`div[row-index="${row_index}"]`)[1];
   }
-  
+​
   toggle_soft_line = function(event)
   {
     cell = event.currentTarget;
@@ -703,7 +715,7 @@
     {
       return;
     }
-    
+​
     if(event.currentTarget.classList.contains(soft_class))
     {
       make_row_normal(row_for_cell(cell));
@@ -714,7 +726,7 @@
       make_row_sharp(row_for_cell(cell));
     }
   }
-  
+​
   make_row_sharp = function(row)
   {
     soft_cell = row.querySelector(`.${soft_class}`);
@@ -729,30 +741,30 @@
       {
         continue;
       }
-      
+​
       make_cell_sharp(cell, soft_cell);
     }
   }
-  
+​
   make_cell_sharp = function(cell, soft_cell)
   {
     if(cell.textContent.trim() == "-")
     {
       return;
     }
-    
+​
     soft_odds = parseInt(soft_cell.textContent);
     devigged_odds = devigged_odds_for_cell(cell);
-    
+​
     ev_bet = soft_odds > devigged_odds;
     background_color = ev_bet ? "LightGreen" : "LightPink";
-    
+​
     cell.classList.add(sharp_class);
     cell.firstElementChild.firstElementChild.firstElementChild.style.color = "Black";
     cell.firstElementChild.firstElementChild.firstElementChild.style.backgroundColor = background_color;
     add_ev_to_title(cell, soft_cell);
   }
-  
+​
   make_cell_soft = function(cell)
   {
     for(previous_soft_cell of row_for_cell(cell).getElementsByClassName(soft_class))
@@ -763,7 +775,7 @@
     cell.firstElementChild.firstElementChild.firstElementChild.style.color = "Black";
     cell.firstElementChild.firstElementChild.firstElementChild.style.backgroundColor = "Yellow";
   }
-  
+​
   make_row_normal = function(row)
   {
     for(cell of cells_for_row(row))
@@ -771,7 +783,7 @@
       make_cell_normal(cell);
     }
   }
-  
+​
   make_cell_normal = function(cell)
   {
     cell.classList.remove(soft_class);
@@ -781,12 +793,12 @@
     cell.firstElementChild.firstElementChild.firstElementChild.style.color = "White";
     cell.removeAttribute("title");
   }
-  
+​
   parlay_legs = function()
   {
     return JSON.parse(localStorage.getItem(parlay_key)) || [];
   }
-  
+​
   add_devigged_odds_to_title = function(event)
   {
     cell = event.currentTarget;
@@ -794,7 +806,7 @@
     {
       return;
     }
-    
+​
     devigged_odds = devigged_odds_for_cell(cell);
     devigged_percentage = devigged_percentage_string_for_cell(cell);
     if(!cell.title)
@@ -802,7 +814,7 @@
       cell.title = `Fair: ${(devigged_odds)} (${devigged_percentage})`;
     }
   }
-  
+​
   add_ev_to_title = function(sharp_cell, soft_cell)
   {
     sharp_odds = devigged_odds_for_cell(sharp_cell);
@@ -813,21 +825,21 @@
     full_kelly_bet = "$" + (bankroll*kelly_percentage(soft_odds, sharp_odds)/100).toFixed();
     fractional_kelly_bet = "$" + (bankroll*kelly_fraction*kelly_percentage(soft_odds, sharp_odds)/100).toFixed();
     fractional_kelly_pct = (kelly_fraction * kelly_percentage(soft_odds, sharp_odds)).toFixed(1) + "%";
-    
+​
     sharp_cell.title = `Fair: ${sharp_odds} (${sharp_percentage})\nEV: ${ev}\nFull Kelly: ${full_kelly_bet} (${full_kelly_pct})\nFractional Kelly: ${fractional_kelly_bet} (${fractional_kelly_pct})`;
   }
-  
+​
   devigged_percentage_for_cell = function(cell)
   {
     devigged_odds = devigged_odds_for_cell(cell);
     return odds_to_percentage(devigged_odds);
   }
-  
+​
   devigged_percentage_string_for_cell = function(cell)
   {
     return devigged_percentage_for_cell(cell).toFixed(1) + "%";
   }
-  
+​
   other_cells_for_cell = function(cell)
   {
     other_cells = [];
@@ -852,7 +864,7 @@
     }
     return [cell];
   }
-  
+​
   devigged_odds_for_cell = function(cell)
   {
     other_cells = other_cells_for_cell(cell);
@@ -869,30 +881,30 @@
     return devigged_power(other_odds)[other_cells.indexOf(cell)];
   }
 }
-
+​
 /* Parlay functions */
 {
   save_parlay_legs = function(legs)
   {
     localStorage.setItem(parlay_key, JSON.stringify(legs));
   }
-  
+​
   add_to_parlay = function(event)
   {
     cell = event.currentTarget;
-    
+​
     if(cell.textContent.trim() == "-" || cell.textContent.trim() == "" || cell.textContent.indexOf("%") != -1 || cell.classList.contains(sharp_class) || cell.classList.contains(soft_class))
     {
       return true;
     }
-    
+​
     legs = parlay_legs();
     legs.push(leg_from_cell(cell));
     save_parlay_legs(legs);
     make_cell_parlay(cell);
     return false;
   }
-  
+​
   make_cell_parlay = function(cell)
   {
     cell.oncontextmenu = remove_from_parlay;
@@ -901,12 +913,12 @@
     cell.firstElementChild.firstElementChild.firstElementChild.style.color = "Black";
     update_parlay_cell_titles();
   }
-  
+​
   market_dropdowns = function()
   {
     return Array.from(document.querySelectorAll(".mat-select")).map(x=>x.textContent.trim());
   }
-  
+​
   leg_from_cell = function(cell)
   {
     row = row_for_cell(cell);
@@ -918,12 +930,12 @@
     book = cell.getAttribute("col-id");
     return ({market: market_dropdowns(), bet: bet_strings, odds: devigged_odds, percentage: devigged_percentage, book: book});
   }
-  
+​
   leg_equality = function(leg1, leg2)
   {
     return leg1.market.join() == leg2.market.join() && leg1.bet == leg2.bet && leg1.book == leg2.book;
   }
-  
+​
   update_parlay_cell_titles = function()
   {
     fair_percentage = 100;
@@ -935,24 +947,24 @@
       {
         market = market + ` (${leg.market.slice(0, 2).join("/")})`;
       }
-      
+​
       title_string = title_string + `${market} - ${leg.bet} : ${leg.odds} (${parseFloat(leg.percentage).toFixed(1)}%)\n`;
       fair_percentage = fair_percentage * parseFloat(leg.percentage)/100;
     }
-    
+​
     fair_odds = percentage_to_odds(fair_percentage);
     title_string = title_string + `----------------------------\nFair odds: ${fair_odds} (${fair_percentage.toFixed(1)}%)`;
-    
+​
     for(cell of document.getElementsByClassName(parlay_class))
     {
       cell.title = title_string;
     }
   }
-  
+​
   remove_from_parlay = function(event)
   {
     cell = event.currentTarget;
-    
+​
     cell.oncontextmenu = add_to_parlay;
     make_cell_normal(event.currentTarget);
     legs = parlay_legs();
@@ -960,10 +972,10 @@
     legs = legs.filter(x => !leg_equality(leg, x));
     save_parlay_legs(legs);
     update_parlay_cell_titles();
-    
+​
     return false;
   }
-  
+​
   make_cells_parlay = function()
   {
     for(leg of parlay_legs())
@@ -973,12 +985,12 @@
       {
         continue;
       }
-      
+​
       for(cell of book_cells)
       {
         row = row_for_cell(cell);
         info_row = info_row_for_row(row);
-        
+​
         if(info_row.textContent.indexOf(leg.bet) != -1)
         {
           make_cell_parlay(cell);
@@ -987,13 +999,13 @@
       }
     }
   }
-  
+​
   clear_parlay = function()
   {
     save_parlay_legs([]);
   }
 }
-
+​
 /* On initial load */
 {
   go_to_markets_events_id = setInterval(add_bet_finder_events, 100);
