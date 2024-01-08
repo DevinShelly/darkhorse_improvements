@@ -12,7 +12,7 @@
 
 /* Variables and debugging */
 {
-  VERSION = "1.0.5";
+  VERSION = "1.0.6";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -20,6 +20,39 @@
   sharp_class = "sharp-class";
   parlay_class = "parlay-class";
   parlay_key = "parlay-key";
+  
+  PLAYER_PROPS = [
+    // NBA https://i.imgur.com/4ATu9Em.png
+    "Points",
+    "3PT FGs",
+    "Assists",
+    "Rebounds",
+    "First Basket",
+    "First Field Goal",
+    "Double-Double",
+    "Triple-Double",
+    "Blocks",
+    "Steals",
+    "Pts+Ast",
+    "Pts+Rebs",
+    "Pts+Ast+Rebs",
+    "Ast+Rebs",
+    "Steals+Blocks",
+    "Alt Points",
+    "Alt 3PT FGs",
+    "Alt Assists",
+    "Alt Rebounds",
+    // NHL https://i.imgur.com/rcV13PJ.png
+    "Assists",
+    "Blocked Shots",
+    "Goals",
+    "First Goal",
+    "Last Goal",
+    "Shots",
+    "Points",
+    "PowerPlay Points",
+    "Saves"
+  ];
 
   set_title = function()
   {
@@ -452,7 +485,11 @@
       case "Alt Total Match Games":
       case "Total Match Games":
         sanitized.market = sanitized.market.replace("Match Games", "Games");
-
+    }
+    
+    if(PLAYER_PROPS.includes(sanitized.market))
+    {
+      sanitized.category = "Player Props";
     }
 
     sanitized.value = sanitized.value.replace("Under ", " u").replace("Over ", " o");
