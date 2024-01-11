@@ -382,28 +382,21 @@
   }
 }
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 /* Generating parameterized browse-odds URLs from bet finders and autorefreshing bets */
 {
-  check_for_autorefresh  = function()
-  {
-    new_odds = document.getElementsByClassName("mat-warn");
-    if(new_odds.length && new_odds[0].textContent == " update ")
-    {
-      new_odds[0].click();
-      setTimeout(refresh_odds, 100);
-    }
-  }
 
-  refresh_odds = function()
+  refresh_odds = async function()
   {
-    buttons = Array.from(document.getElementsByClassName("mat-button-wrapper"));
-    for(button of buttons)
-    {
-      if(button.textContent == " Update ")
-      {
-        button.click();
-      }
-    }
+    const clockBtn = document.querySelector(".mat-warn");
+    if (!clockBtn || clockBtn.textContent !== " update ") return
+
+    clockBtn.click()
+    await delay(100);
+    const updateBtn = document.querySelector('#mat-menu-panel-2 > div > div > div:nth-child(2) > button');
+    if (updateBtn.disabled || updateBtn.textContent !== ' Update ') return
+
+    updateBtn.click()
   }
 
   add_bet_finder_events = function()
@@ -515,10 +508,10 @@
       case "Alt Total Match Games":
       case "Total Match Games":
         sanitized.market = sanitized.market.replace("Match Games", "Games");
+
     }
 
-    if(PLAYER_PROPS.includes(sanitized.market))
-    {
+    if (PLAYER_PROPS.includes(sanitized.market)) {
       sanitized.category = "Player Props";
     }
 
@@ -1081,7 +1074,7 @@
 /* On initial load */
 {
   go_to_markets_events_id = setInterval(add_bet_finder_events, 100);
-  check_for_autorefresh_id = setInterval(check_for_autorefresh, 100);
+  check_for_autorefresh_id = setInterval(refresh_odds, 100);
   devigging_events_id = setInterval(add_devigging_events, 100);
   dim_rows_id = setInterval(dim_rows, 100);
   delete_old_data = setInterval(delete_old_data, 30000);
