@@ -12,7 +12,7 @@
 
 /* Variables and debugging */
 {
-  VERSION = "1.0.6";
+  VERSION = "1.0.7";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -20,7 +20,7 @@
   sharp_class = "sharp-class";
   parlay_class = "parlay-class";
   parlay_key = "parlay-key";
-  
+
   PLAYER_PROPS = [
     // NBA https://i.imgur.com/4ATu9Em.png
     "Points",
@@ -53,6 +53,36 @@
     "PowerPlay Points",
     "Saves"
   ];
+
+// https://i.imgur.com/8hs3fdz.png
+  NFL_PROP_MARKETS_BY_SEGMENT = {
+    "Passing Yards": "Passing",
+    "Passing TDs": "Passing",
+    "Pass Attempts": "Passing",
+    "Completions": "Passing",
+    "Interceptions": "Passing",
+    "Longest Compl.": "Passing",
+    "Alt Pass Yards": "Passing",
+    "Receiving Yards": "Receiving",
+    "Receptions": "Receiving",
+    "Longest Recept.": "Receiving",
+    "Alt Recv Yards": "Receiving",
+    "Rush Yards": "Rushing",
+    "Rush Attempts": "Rushing",
+    "Longest Rush": "Rushing",
+    "Alt Rush Yards": "Rushing",
+    "Touchdowns": "TD Scorer",
+    "First TD Scorer": "TD Scorer",
+    "Last TD Scorer": "TD Scorer",
+    "Pass + Rush Yards": "Combos",
+    "Rec + Rush Yards": "Combos",
+    "Def Interceptions": "Defense",
+    "Sacks": "Defense",
+    "Tackles + Assists": "Defense",
+    "Kicking Pts": "Kicking",
+    "FGs Made": "Kicking",
+    "XPs Made": "Kicking"
+  }
 
   set_title = function()
   {
@@ -486,10 +516,15 @@
       case "Total Match Games":
         sanitized.market = sanitized.market.replace("Match Games", "Games");
     }
-    
+
     if(PLAYER_PROPS.includes(sanitized.market))
     {
       sanitized.category = "Player Props";
+    }
+
+    if (Object.keys(NFL_PROP_MARKETS_BY_SEGMENT).includes(sanitized.market)) {
+      sanitized.category = "Player Props";
+      sanitized.segment = NFL_PROP_MARKETS_BY_SEGMENT[sanitized.market];
     }
 
     sanitized.value = sanitized.value.replace("Under ", " u").replace("Over ", " o");
