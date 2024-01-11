@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         devin's dh improvements
 // @namespace    http://tampermonkey.net/
-// @version      1.0.6
+// @version      1.0.8
 // @description  dh improvements
 // @author       Devin Shelly
 // @match        https://darkhorseodds.com/*
@@ -12,7 +12,7 @@
 
 /* Variables and debugging */
 {
-  VERSION = "1.0.7";
+  VERSION = "1.0.8";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -390,13 +390,13 @@
     if(new_odds.length && new_odds[0].textContent == " update ")
     {
       new_odds[0].click();
-      setTimeout(refresh_odds, 100);
+      setTimeout(refresh_odds, 1000);
     }
   }
 
   refresh_odds = function()
   {
-    buttons = Array.from(document.getElementsByClassName("mat-button-wrapper"));
+    buttons = Array.from(document.getElementsByClassName("mdc-button--raised"));
     for(button of buttons)
     {
       if(button.textContent == " Update ")
@@ -1081,7 +1081,7 @@
 /* On initial load */
 {
   go_to_markets_events_id = setInterval(add_bet_finder_events, 100);
-  check_for_autorefresh_id = setInterval(check_for_autorefresh, 100);
+  check_for_autorefresh_id = setInterval(check_for_autorefresh, 1000);
   devigging_events_id = setInterval(add_devigging_events, 100);
   dim_rows_id = setInterval(dim_rows, 100);
   delete_old_data = setInterval(delete_old_data, 30000);
