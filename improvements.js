@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         devin's dh improvements
 // @namespace    http://tampermonkey.net/
-// @version      1.0.6
+// @version      1.0.8
 // @description  dh improvements
 // @author       Devin Shelly
 // @match        https://darkhorseodds.com/*
@@ -12,7 +12,7 @@
 
 /* Variables and debugging */
 {
-  VERSION = "1.0.7";
+  VERSION = "1.0.8";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -385,7 +385,6 @@
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 /* Generating parameterized browse-odds URLs from bet finders and autorefreshing bets */
 {
-
   refresh_odds = async function()
   {
     const clockBtn = document.querySelector(".mat-warn");
