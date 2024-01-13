@@ -527,6 +527,11 @@
       sanitized.segment = NFL_PROP_MARKETS_BY_SEGMENT[sanitized.market];
     }
 
+    if (sanitized.league === 'Tennis') {
+      const [first_name, last_name] = sanitized.team2.split(' ');
+      sanitized.team2 = `${first_name[0]}. ${last_name}`;
+    }
+
     sanitized.value = sanitized.value.replace("Under ", " u").replace("Over ", " o");
     console.log("Sanitized");
     console.log(sanitized);
