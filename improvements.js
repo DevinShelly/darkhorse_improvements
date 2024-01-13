@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         devin's dh improvements
 // @namespace    http://tampermonkey.net/
-// @version      1.0.8
+// @version      1.0.9
 // @description  dh improvements
 // @author       Devin Shelly
 // @match        https://darkhorseodds.com/*
@@ -12,7 +12,7 @@
 
 /* Variables and debugging */
 {
-  VERSION = "1.0.8";
+  VERSION = "1.0.9";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
