@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         devin's dh improvements
 // @namespace    http://tampermonkey.net/
-// @version      1.0.9
+// @version      1.0.10
 // @description  dh improvements
 // @author       Devin Shelly
 // @match        https://darkhorseodds.com/*
@@ -12,7 +12,7 @@
 
 /* Variables and debugging */
 {
-  VERSION = "1.0.9";
+  VERSION = "1.0.10";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -54,8 +54,8 @@
     "Saves"
   ];
 
-// https://i.imgur.com/8hs3fdz.png
-  NFL_PROP_MARKETS_BY_SEGMENT = {
+  PROP_MARKETS_BY_SEGMENT = {
+    // NFL https://i.imgur.com/8hs3fdz.png
     "Passing Yards": "Passing",
     "Passing TDs": "Passing",
     "Pass Attempts": "Passing",
@@ -81,7 +81,22 @@
     "Tackles + Assists": "Defense",
     "Kicking Pts": "Kicking",
     "FGs Made": "Kicking",
-    "XPs Made": "Kicking"
+    "XPs Made": "Kicking",
+    // MLB https://i.imgur.com/ER6ntDf.png
+    "Hits": "Batter",
+    "Singles": "Batter",
+    "Doubles": "Batter",
+    "Triples": "Batter",
+    "Home Runs": "Batter",
+    "Total Bases": "Batter",
+    "RBIs": "Batter",
+    "Runs": "Batter",
+    "Stolen Bases": "Batter",
+    "Hits Allowed": "Pitcher",
+    "Walks Allowed": "Pitcher",
+    "Strikeouts": "Pitcher",
+    "Earned Runs": "Pitcher",
+    "Hits+Runs+RBIs": "Combos",
   }
 
   set_title = function()
@@ -522,9 +537,9 @@
       sanitized.category = "Player Props";
     }
 
-    if (Object.keys(NFL_PROP_MARKETS_BY_SEGMENT).includes(sanitized.market)) {
+    if (Object.keys(PROP_MARKETS_BY_SEGMENT).includes(sanitized.market)) {
       sanitized.category = "Player Props";
-      sanitized.segment = NFL_PROP_MARKETS_BY_SEGMENT[sanitized.market];
+      sanitized.segment = PROP_MARKETS_BY_SEGMENT[sanitized.market];
     }
 
     if (sanitized.league === 'Tennis') {
