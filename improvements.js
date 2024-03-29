@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         devin's dh improvements
 // @namespace    http://tampermonkey.net/
-// @version      1.0.10
+// @version      1.0.11
 // @description  dh improvements
 // @author       Devin Shelly
 // @match        https://darkhorseodds.com/*
@@ -12,7 +12,7 @@
 
 /* Variables and debugging */
 {
-  VERSION = "1.0.10";
+  VERSION = "1.0.11";
   bankroll = 30000;
   kelly_fraction = 0.5;
   one_way_overround = 1.07;
@@ -542,7 +542,7 @@
       sanitized.segment = PROP_MARKETS_BY_SEGMENT[sanitized.market];
     }
 
-    if (sanitized.league === 'Tennis') {
+    if (sanitized.league === 'Tennis' || sanitized.league === 'UFC') {
       const [first_name, last_name] = sanitized.team2.split(' ');
       sanitized.team2 = `${first_name[0]}. ${last_name}`;
     }
