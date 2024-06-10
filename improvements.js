@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         devin's dh improvements
 // @namespace    http://tampermonkey.net/
-// @version      1.0.11
+// @version      1.0.12
 // @description  dh improvements
 // @author       Devin Shelly
 // @match        https://darkhorseodds.com/*
@@ -461,6 +461,9 @@
         break;
       case "UEFA-EL":
         sanitized.league = "UEFA Europa";
+        break;
+      case "Euro 2024":
+        sanitized.league = "UEFA Euro 2024";
         break;
       case "WBC":
         sanitized.league = "World Baseball Classic";
